@@ -445,6 +445,11 @@ class PaperboyPrinceAPITester:
         self.test_my_rsvps()
         self.test_my_signups()
         
+        # Notify me tests
+        self.test_notify_subscription()
+        self.test_get_notify_subscribers()
+        self.test_duplicate_notify_subscription()
+        
         # Print results
         print("\n" + "=" * 60)
         print(f"📊 Test Results: {self.tests_passed}/{self.tests_run} passed")
