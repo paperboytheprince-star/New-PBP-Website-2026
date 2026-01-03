@@ -919,6 +919,77 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Subscribers Tab */}
+          <TabsContent value="subscribers">
+            <Card className="border-2 border-black rounded-xl">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="font-campaign text-2xl tracking-wider">
+                  <Bell className="w-6 h-6 inline mr-2 text-pp-magenta" />
+                  SHOP LAUNCH SUBSCRIBERS
+                </CardTitle>
+                <Button 
+                  className="rounded-full bg-pp-magenta text-white border-2 border-black"
+                  onClick={exportSubscribers}
+                  disabled={subscribers.length === 0}
+                  data-testid="export-subscribers-button"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Export CSV
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {subscribers.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Bell className="w-16 h-16 text-pp-pink mx-auto mb-4" />
+                    <p className="font-primary text-muted-foreground">No subscribers yet</p>
+                    <p className="font-primary text-sm text-muted-foreground mt-2">
+                      People who want to be notified when the shop launches will appear here.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-4 p-4 bg-pp-lavender rounded-xl border-2 border-pp-pink">
+                      <p className="font-primary font-bold text-lg">
+                        {subscribers.length} people waiting for the shop launch!
+                      </p>
+                      <p className="font-primary text-sm text-muted-foreground">
+                        Export the list to send email announcements when you're ready to launch.
+                      </p>
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Subscribed</TableHead>
+                          <TableHead className="text-right">Remove</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {subscribers.map((sub) => (
+                          <TableRow key={sub.id} data-testid={`subscriber-row-${sub.id}`}>
+                            <TableCell className="font-primary font-medium">{sub.email}</TableCell>
+                            <TableCell>{new Date(sub.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-500 hover:text-red-700"
+                                onClick={() => unsubscribeNotify(sub.email)}
+                                data-testid={`remove-subscriber-${sub.id}`}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
