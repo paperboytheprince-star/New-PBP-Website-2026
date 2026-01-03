@@ -1,34 +1,100 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* App-specific styles */
+
+/* Hero gradient overlay */
+.hero-gradient {
+    background: linear-gradient(135deg, rgba(255, 20, 147, 0.9) 0%, rgba(255, 153, 204, 0.8) 50%, rgba(255, 179, 71, 0.7) 100%);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+/* Love beam divider */
+.love-beam {
+    background: linear-gradient(90deg, #FF1493, #FF99CC, #FFB347);
+    height: 4px;
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
-}
-
-.App-link {
-    color: #61dafb;
-}
-
-@keyframes App-logo-spin {
+/* Card entrance animation */
+@keyframes fadeInUp {
     from {
-        transform: rotate(0deg);
+        opacity: 0;
+        transform: translateY(20px);
     }
     to {
-        transform: rotate(360deg);
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fadeInUp {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* Stagger children */
+.stagger-children > *:nth-child(1) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.5s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.6s; }
+
+/* Nav link hover effect */
+.nav-link {
+    position: relative;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: #FF1493;
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* Coming soon badge pulse */
+@keyframes pulse-pink {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(255, 20, 147, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(255, 20, 147, 0);
+    }
+}
+
+.pulse-pink {
+    animation: pulse-pink 2s infinite;
+}
+
+/* Form input focus glow */
+.input-glow:focus {
+    box-shadow: 0 0 0 3px rgba(255, 20, 147, 0.2);
+}
+
+/* Admin sidebar active state */
+.sidebar-active {
+    background: linear-gradient(90deg, #FDF5F9 0%, transparent 100%);
+    border-left: 4px solid #FF1493;
+}
+
+/* Responsive text scaling */
+@media (max-width: 640px) {
+    .hero-text {
+        font-size: 2.5rem;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    .hero-text {
+        font-size: 3.5rem;
+    }
+}
+
+@media (min-width: 1025px) {
+    .hero-text {
+        font-size: 4.5rem;
     }
 }
