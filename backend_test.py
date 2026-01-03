@@ -357,6 +357,54 @@ class PaperboyPrinceAPITester:
             self.log_result("My signups", False, f"Response: {response}")
             return False
 
+    def test_notify_subscription(self):
+        """Test notify me email subscription"""
+        test_email = f"notify_test_{datetime.now().strftime('%H%M%S')}@example.com"
+        notify_data = {"email": test_email}
+        
+        success, response = self.make_request('POST', 'notify', notify_data, expected_status=200)
+        
+        if success and 'id' in response and 'email' in response:
+            self.log_result("Notify subscription", True)
+            return True
+        else:
+            self.log_result("Notify subscription", False, f"Response: {response}")
+            return False
+
+    def test_get_notify_subscribers(self):
+        """Test getting notify subscribers (admin only)"""
+        if not self.admin_token:
+            self.log_result("Get notify subscribers", False, "No admin token available")
+            return False
+            
+        success, response = self.make_request('GET', 'notify/subscribers', use_admin=True, expected_status=200)
+        
+        if success and isinstance(response, list):
+            self.log_result("Get notify subscribers", True)
+            return True
+        else:
+            self.log_result("Get notify subscribers", False, f"Response: {response}")
+            return False
+
+    def test_duplicate_notify_subscription(self):
+        """Test duplicate email subscription (should return existing)"""
+        test_email = "test@example.com"  # Use a known email
+        notify_data = {"email": test_email}
+        
+        # First subscription
+        success1, response1 = self.make_request('POST', 'notify', notify_data, expected_status=200)
+        
+        # Second subscription (should return existing)
+        success2, response2 = self.make_request('POST', 'notify', notify_data, expected_status=200)
+        
+        if success1 and success2 and response1.get('email') == response2.get('email'):
+            self.log_result("Duplicate notify subscription", True)
+            return True
+        else:
+            self.log_result("Duplicate notify subscription", False, 
+                           f"First: {response1}, Second: {response2}")
+            return False
+
     def run_all_tests(self):
         """Run comprehensive API test suite"""
         print("🚀 Starting Paperboy Prince Platform API Tests")
