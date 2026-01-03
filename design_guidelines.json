@@ -1,0 +1,145 @@
+{
+  "project_name": "Paperboy Prince Platform",
+  "design_philosophy": {
+    "persona": "E1: The Anti-AI Designer",
+    "theme_name": "Love Revolution (High-Voltage Light Mode)",
+    "core_concept": "A digital street party. Not a political website, but a movement hub. Vibrant, loud, optimistic, and radically loving.",
+    "visual_style": "Neo-Brutalist Pop. High contrast, bold borders, massive typography, and vibrant color floods.",
+    "emotional_tone": "Energetic, Playful, Trustworthy, Radical"
+  },
+  "typography": {
+    "font_family": {
+      "primary": "Poppins, sans-serif",
+      "secondary": "Fredoka One, cursive",
+      "campaign": "Apotek, 'Bebas Neue', sans-serif"
+    },
+    "usage_rules": {
+      "headings": "font-primary font-extrabold tracking-tight text-4xl md:text-6xl lg:text-7xl uppercase",
+      "subheadings": "font-campaign tracking-wide text-xl md:text-2xl uppercase text-primary",
+      "body": "font-primary font-medium text-base md:text-lg leading-relaxed text-foreground/90",
+      "accents": "font-secondary text-accent-foreground",
+      "nav_links": "font-campaign text-lg tracking-widest uppercase hover:text-primary transition-colors"
+    },
+    "import_instructions": "Import fonts via Google Fonts in index.css: @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Poppins:wght@400;600;800&family=Bebas+Neue&display=swap');"
+  },
+  "colors": {
+    "palette": {
+      "primary": "#FF1493",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#FF99CC",
+      "secondary_foreground": "#1A1A1A",
+      "accent": "#FFB347",
+      "accent_foreground": "#1A1A1A",
+      "background": "#FFFFFF",
+      "foreground": "#1A1A1A",
+      "muted": "#FDF5F9",
+      "muted_foreground": "#666666",
+      "border": "#1A1A1A",
+      "input": "#F0F0F0",
+      "ring": "#FF1493"
+    },
+    "tailwind_config_extension": {
+      "colors": {
+        "pp-magenta": "#FF1493",
+        "pp-pink": "#FF99CC",
+        "pp-lavender": "#E6E6FA",
+        "pp-peach": "#FFDAB9",
+        "pp-orange": "#FFB347",
+        "pp-deep-pink": "#FF1493"
+      }
+    },
+    "usage_guide": {
+      "buttons": "bg-pp-magenta text-white hover:bg-pp-deep-pink",
+      "cards": "bg-white border-2 border-black",
+      "sections": "Alternate between White (#FFFFFF) and Pale Pink (#FDF5F9) or Lavender (#E6E6FA)"
+    }
+  },
+  "layout_and_grid": {
+    "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+    "spacing_scale": "Generous. Use p-8, p-12, p-16 for section padding.",
+    "grid_system": {
+      "feed": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8",
+      "bento_hero": "grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 auto-rows-[minmax(180px,auto)]",
+      "dashboard": "grid grid-cols-1 lg:grid-cols-4 gap-6"
+    },
+    "border_radius": {
+      "default": "rounded-none",
+      "cards": "rounded-3xl",
+      "buttons": "rounded-full"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "rounded-full bg-pp-magenta text-white font-bold px-8 py-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black uppercase tracking-wider",
+      "secondary": "rounded-full bg-white text-black font-bold px-8 py-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black uppercase tracking-wider",
+      "ghost": "text-black font-bold hover:text-pp-magenta hover:underline decoration-wavy underline-offset-4"
+    },
+    "cards": {
+      "style": "bg-white rounded-3xl border-2 border-black p-6 shadow-[8px_8px_0px_0px_rgba(255,153,204,1)] hover:shadow-[12px_12px_0px_0px_rgba(255,20,147,1)] transition-all duration-300",
+      "feed_post": "flex flex-col h-full overflow-hidden",
+      "product": "relative group overflow-hidden"
+    },
+    "inputs": {
+      "style": "rounded-xl border-2 border-black bg-white px-4 py-3 focus:ring-2 focus:ring-pp-magenta focus:ring-offset-2 focus:outline-none font-medium placeholder:text-gray-400"
+    },
+    "navigation": {
+      "style": "sticky top-4 z-50 mx-4 rounded-full border-2 border-black bg-white/90 backdrop-blur-md shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-6 py-3 flex items-center justify-between"
+    }
+  },
+  "visual_enhancers": {
+    "textures": "Use subtle noise overlays on solid backgrounds to avoid 'flatness'.",
+    "decorations": "Use 'Love Beams' (gradients of Pink->Orange) as section dividers.",
+    "marquee": "Use infinite scrolling text for announcements: 'SPREAD LOVE * PAPERBOY PRINCE * THE FUTURE IS NOW'",
+    "shadows": "Hard shadows (box-shadow) instead of soft blurs. Direction: Bottom-Right."
+  },
+  "image_assets": {
+    "hero_background": {
+      "url": "https://images.unsplash.com/photo-1682447450943-c5785c84d047?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "alt": "Abstract vibrant city street",
+      "usage": "Hero section background with overlay"
+    },
+    "events_crowd": {
+      "url": "https://images.unsplash.com/photo-1759605034474-b143695762c5?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "alt": "Vibrant crowd at event",
+      "usage": "Events page header or card"
+    },
+    "action_volunteers": {
+      "url": "https://images.unsplash.com/photo-1728706613021-e447801e1ea6?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "alt": "Community gardening volunteer",
+      "usage": "Action Center / Volunteer section"
+    },
+    "shop_merch": {
+      "url": "https://images.unsplash.com/photo-1630269470859-f950f36b54ce?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "alt": "Pink hoodie merchandise",
+      "usage": "Shop 'Coming Soon' teaser"
+    },
+    "art_texture": {
+      "url": "https://images.unsplash.com/photo-1763168573987-5c3130015401?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "alt": "Graffiti heart art",
+      "usage": "Decorative element or footer background"
+    }
+  },
+  "page_specific_guidelines": {
+    "landing_page": {
+      "structure": "Hero (Big Bold Text + Image) -> Marquee -> Feed Preview (Bento Grid) -> Action Call -> Footer",
+      "key_element": "The 'Join the Love Revolution' CTA must be massive."
+    },
+    "shop_page": {
+      "state": "Coming Soon",
+      "design": "Showcase the Pink Hoodie as a 'Holy Grail' item. Use a countdown or 'Notify Me' form. Keep the Cart icon visible but empty.",
+      "visual": "Use the 'art_texture' as a background for the product card."
+    },
+    "admin_dashboard": {
+      "style": "Control Room Grid (Mode B). Dense but readable.",
+      "colors": "White background, Sidebar in Pale Pink (#FDF5F9). Active tabs in Magenta.",
+      "cards": "Simpler style: 1px border, soft shadow."
+    }
+  },
+  "universal_guidelines_for_main_agent": {
+    "file_extension": "Use .jsx for React components (as per project constraints).",
+    "animation": "Use framer-motion for entrance animations (fade-up, stagger-children).",
+    "accessibility": "Ensure text contrast on the pink backgrounds. Use black text on pink, or white text on deep magenta.",
+    "testing": "Add data-testid to all interactive elements (buttons, inputs, links).",
+    "code_style": "Use functional components with hooks. Keep components small and composable."
+  }
+}
