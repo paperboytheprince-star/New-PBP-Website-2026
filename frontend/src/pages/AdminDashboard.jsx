@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { adminAPI, postsAPI, productsAPI, eventsAPI, actionsAPI } from '../lib/api';
+import { adminAPI, postsAPI, productsAPI, eventsAPI, actionsAPI, notifyAPI } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -34,7 +34,7 @@ import {
 } from '../components/ui/table';
 import { 
   Heart, Users, ShoppingBag, Calendar, Megaphone, FileText, 
-  Plus, Edit2, Trash2, ArrowLeft, LogOut, BarChart3, Check
+  Plus, Edit2, Trash2, ArrowLeft, LogOut, BarChart3, Check, Bell, Mail
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -47,6 +47,7 @@ const AdminDashboard = () => {
   const [events, setEvents] = useState([]);
   const [actions, setActions] = useState([]);
   const [users, setUsers] = useState([]);
+  const [subscribers, setSubscribers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editItem, setEditItem] = useState(null);
@@ -62,13 +63,14 @@ const AdminDashboard = () => {
 
   const loadAllData = async () => {
     try {
-      const [statsRes, postsRes, productsRes, eventsRes, actionsRes, usersRes] = await Promise.all([
+      const [statsRes, postsRes, productsRes, eventsRes, actionsRes, usersRes, subscribersRes] = await Promise.all([
         adminAPI.getStats(),
         postsAPI.getAll(),
         productsAPI.getAll(),
         eventsAPI.getAll(),
         actionsAPI.getAll(),
         adminAPI.getUsers(),
+        notifyAPI.getSubscribers(),
       ]);
       
       setStats(statsRes.data);
@@ -77,6 +79,7 @@ const AdminDashboard = () => {
       setEvents(eventsRes.data);
       setActions(actionsRes.data);
       setUsers(usersRes.data);
+      setSubscribers(subscribersRes.data);
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Failed to load data');
