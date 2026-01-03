@@ -342,6 +342,14 @@ const AdminDashboard = () => {
               <Users className="w-4 h-4 mr-2" />
               USERS
             </TabsTrigger>
+            <TabsTrigger 
+              value="subscribers" 
+              className="rounded-full px-6 py-2 font-campaign data-[state=active]:bg-pp-magenta data-[state=active]:text-white"
+              data-testid="tab-subscribers"
+            >
+              <Bell className="w-4 h-4 mr-2" />
+              NOTIFY
+            </TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -355,6 +363,7 @@ const AdminDashboard = () => {
                 { label: 'Actions', value: stats?.actions || 0, icon: Megaphone, color: 'bg-pp-magenta' },
                 { label: 'RSVPs', value: stats?.rsvps || 0, icon: Check, color: 'bg-teal-500' },
                 { label: 'Action Signups', value: stats?.action_signups || 0, icon: Heart, color: 'bg-pink-500' },
+                { label: 'Shop Subscribers', value: stats?.notify_subscribers || 0, icon: Bell, color: 'bg-yellow-500' },
               ].map((stat, idx) => (
                 <Card key={idx} className="border-2 border-black rounded-xl">
                   <CardContent className="p-4 flex items-center gap-4">
