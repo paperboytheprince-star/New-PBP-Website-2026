@@ -97,6 +97,13 @@ export const cartAPI = {
   clear: () => api.delete('/cart'),
 };
 
+// Notify Me
+export const notifyAPI = {
+  subscribe: (email) => api.post('/notify', { email }),
+  getSubscribers: () => api.get('/notify/subscribers'),
+  unsubscribe: (email) => api.delete(`/notify/${email}`),
+};
+
 // Admin
 export const adminAPI = {
   getStats: () => api.get('/admin/stats'),

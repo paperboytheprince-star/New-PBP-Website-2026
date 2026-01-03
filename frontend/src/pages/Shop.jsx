@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { productsAPI, cartAPI } from '../lib/api';
+import { productsAPI, cartAPI, notifyAPI } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
@@ -13,7 +13,7 @@ import {
   SheetTrigger,
 } from '../components/ui/sheet';
 import { Input } from '../components/ui/input';
-import { ShoppingCart, Plus, Minus, Trash2, Bell, Heart, Sparkles } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Bell, Heart, Sparkles, Check, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Shop = () => {
@@ -23,6 +23,8 @@ const Shop = () => {
   const [loading, setLoading] = useState(true);
   const [cartOpen, setCartOpen] = useState(false);
   const [notifyEmail, setNotifyEmail] = useState('');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscribing, setSubscribing] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -89,11 +91,23 @@ const Shop = () => {
     }
   };
 
-  const handleNotify = (e) => {
+  const handleNotify = async (e) => {
     e.preventDefault();
-    if (notifyEmail) {
-      toast.success('We\'ll notify you when the shop opens!');
+    if (!notifyEmail) {
+      toast.error('Please enter your email');
+      return;
+    }
+    
+    setSubscribing(true);
+    try {
+      await notifyAPI.subscribe(notifyEmail);
+      setIsSubscribed(true);
+      toast.success('You\'re on the list! We\'ll notify you when the shop opens.');
       setNotifyEmail('');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to subscribe');
+    } finally {
+      setSubscribing(false);
     }
   };
 
@@ -120,24 +134,40 @@ const Shop = () => {
           </p>
           
           {/* Notify Form */}
-          <form onSubmit={handleNotify} className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={notifyEmail}
-              onChange={(e) => setNotifyEmail(e.target.value)}
-              className="rounded-full border-2 border-black px-6 py-3 input-glow"
-              data-testid="notify-email-input"
-            />
-            <Button 
-              type="submit"
-              className="rounded-full bg-pp-magenta text-white font-bold px-6 py-3 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all"
-              data-testid="notify-button"
-            >
-              <Bell className="w-4 h-4 mr-2" />
-              Notify Me
-            </Button>
-          </form>
+          {isSubscribed ? (
+            <div className="flex items-center justify-center gap-3 bg-green-100 text-green-800 rounded-full px-6 py-4 max-w-md mx-auto border-2 border-green-500">
+              <Check className="w-6 h-6" />
+              <span className="font-primary font-semibold">You're on the list! We'll email you when we launch.</span>
+            </div>
+          ) : (
+            <form onSubmit={handleNotify} className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
+              <div className="relative flex-1">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="email"
+                  placeholder="Enter your email to get notified"
+                  value={notifyEmail}
+                  onChange={(e) => setNotifyEmail(e.target.value)}
+                  className="rounded-full border-2 border-black pl-12 pr-6 py-6 input-glow text-base"
+                  data-testid="notify-email-input"
+                  required
+                />
+              </div>
+              <Button 
+                type="submit"
+                disabled={subscribing}
+                className="rounded-full bg-pp-magenta text-white font-bold px-8 py-6 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
+                data-testid="notify-button"
+              >
+                <Bell className="w-5 h-5 mr-2" />
+                {subscribing ? 'Subscribing...' : 'Notify Me'}
+              </Button>
+            </form>
+          )}
+          
+          <p className="font-primary text-sm text-muted-foreground mt-4">
+            Be the first to know when we drop new merch!
+          </p>
         </div>
       </section>
 
