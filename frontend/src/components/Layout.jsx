@@ -14,6 +14,9 @@ import { Menu, X, User, LogOut, Settings, ShoppingCart, Heart } from 'lucide-rea
 
 const navLinks = [
   { path: '/', label: 'HOME' },
+  { path: '/about', label: 'ABOUT' },
+  { path: '/films', label: 'FILMS' },
+  { path: '/music', label: 'MUSIC' },
   { path: '/events', label: 'EVENTS' },
   { path: '/action', label: 'ACTION' },
   { path: '/shop', label: 'SHOP' },
