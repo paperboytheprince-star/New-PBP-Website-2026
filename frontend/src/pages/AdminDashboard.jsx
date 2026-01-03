@@ -232,6 +232,33 @@ const AdminDashboard = () => {
     }
   };
 
+  // Unsubscribe notify
+  const unsubscribeNotify = async (email) => {
+    if (!confirm(`Remove ${email} from subscribers?`)) return;
+    try {
+      await notifyAPI.unsubscribe(email);
+      toast.success('Subscriber removed');
+      loadAllData();
+    } catch (error) {
+      toast.error('Failed to remove subscriber');
+    }
+  };
+
+  // Export subscribers as CSV
+  const exportSubscribers = () => {
+    const csv = ['Email,Subscribed Date'];
+    subscribers.forEach(s => {
+      csv.push(`${s.email},${new Date(s.created_at).toLocaleDateString()}`);
+    });
+    const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'shop_subscribers.csv';
+    a.click();
+    toast.success('Subscribers exported!');
+  };
+
   if (!isAuthenticated || !isAdmin) {
     return null;
   }
