@@ -178,6 +178,16 @@ class ActionParticipantResponse(BaseModel):
 class ActionSignup(BaseModel):
     message: Optional[str] = None
 
+# Notification Models
+class NotifyEmailCreate(BaseModel):
+    email: EmailStr
+
+class NotifyEmailResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    email: str
+    created_at: str
+
 # Cart Models
 class CartItemAdd(BaseModel):
     product_id: str
@@ -691,6 +701,40 @@ async def clear_cart(user: dict = Depends(get_current_user)):
     await db.cart_items.delete_many({"user_id": user["id"]})
     return {"message": "Cart cleared"}
 
+# ============ NOTIFY ME ROUTES ============
+
+@api_router.post("/notify", response_model=NotifyEmailResponse)
+async def subscribe_notify(data: NotifyEmailCreate):
+    """Subscribe to shop launch notifications"""
+    existing = await db.notify_emails.find_one({"email": data.email})
+    if existing:
+        return {"id": existing["id"], "email": existing["email"], "created_at": existing["created_at"]}
+    
+    notify_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    notify_doc = {
+        "id": notify_id,
+        "email": data.email,
+        "created_at": now
+    }
+    await db.notify_emails.insert_one(notify_doc)
+    return notify_doc
+
+@api_router.get("/notify/subscribers", response_model=List[NotifyEmailResponse])
+async def get_notify_subscribers(user: dict = Depends(get_admin_user)):
+    """Get all notify me subscribers (admin only)"""
+    subscribers = await db.notify_emails.find({}, {"_id": 0}).to_list(10000)
+    return subscribers
+
+@api_router.delete("/notify/{email}")
+async def unsubscribe_notify(email: str, user: dict = Depends(get_admin_user)):
+    """Remove a subscriber (admin only)"""
+    result = await db.notify_emails.delete_one({"email": email})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Email not found")
+    return {"message": "Unsubscribed successfully"}
+
 # ============ ADMIN STATS ============
 
 @api_router.get("/admin/stats")
@@ -702,6 +746,7 @@ async def get_admin_stats(user: dict = Depends(get_admin_user)):
     actions_count = await db.actions.count_documents({})
     rsvps_count = await db.rsvps.count_documents({})
     signups_count = await db.action_participants.count_documents({})
+    notify_count = await db.notify_emails.count_documents({})
     
     return {
         "users": users_count,
@@ -710,7 +755,8 @@ async def get_admin_stats(user: dict = Depends(get_admin_user)):
         "events": events_count,
         "actions": actions_count,
         "rsvps": rsvps_count,
-        "action_signups": signups_count
+        "action_signups": signups_count,
+        "notify_subscribers": notify_count
     }
 
 @api_router.get("/admin/users", response_model=List[UserResponse])
