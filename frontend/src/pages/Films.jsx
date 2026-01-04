@@ -1,45 +1,38 @@
-import { Film, Play, Calendar } from 'lucide-react';
+import { Film, Calendar } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 
 const Films = () => {
-  // Placeholder film data
   const films = [
     {
       id: 1,
-      title: 'Love Revolution Documentary',
-      year: '2024',
-      description: 'A documentary exploring grassroots community organizing and the power of love-based activism in Brooklyn.',
+      title: 'Paperboy Prince for Mayor 2025 Campaign Ad',
+      year: '2025',
+      youtubeId: 'dsrNNrxWG7A',
     },
     {
       id: 2,
-      title: 'Streets of Brooklyn',
-      year: '2023',
-      description: 'Visual journey through the neighborhoods that shaped Paperboy Prince, featuring local artists and community leaders.',
+      title: 'Paperboy Prince is Love',
+      year: '2024',
+      youtubeId: 'NAo_wuUpfx0',
     },
     {
       id: 3,
-      title: 'The Campaign',
-      year: '2022',
-      description: 'Behind-the-scenes look at running for office with love, art, and radical transparency.',
+      title: 'Baddies For Paperboy Prince',
+      year: '2024',
+      youtubeId: 'h8LNbkXBXO8',
     },
     {
       id: 4,
-      title: 'Art Is Activism',
-      year: '2021',
-      description: 'Short film exploring how creative expression becomes a tool for social change and community healing.',
+      title: 'I just Beat Joe Biden',
+      year: '2024',
+      youtubeId: 'Aqe3h7XTr-E',
     },
     {
       id: 5,
-      title: 'Community Garden',
-      year: '2021',
-      description: 'Documentary following the transformation of an empty lot into a thriving community garden space.',
-    },
-    {
-      id: 6,
-      title: 'Youth Voices',
-      year: '2020',
-      description: 'Amplifying the perspectives of young activists and artists creating change in their communities.',
+      title: 'Paperboy Love Prince Runs For Mayor',
+      year: '2022',
+      youtubeId: 'AtRDdMcHo_M',
     },
   ];
 
@@ -63,31 +56,30 @@ const Films = () => {
 
       {/* Films Grid */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {films.map((film) => (
             <Card 
               key={film.id}
-              className="bg-white rounded-3xl border-2 border-black overflow-hidden card-shadow transition-all duration-300 group"
+              className="bg-white rounded-3xl border-2 border-black overflow-hidden card-shadow transition-all duration-300"
               data-testid={`film-card-${film.id}`}
             >
-              {/* YouTube Embed Placeholder */}
-              <div className="relative aspect-video bg-gray-900 flex items-center justify-center">
-                <div className="text-center text-white">
-                  <div className="w-20 h-20 rounded-full bg-pp-magenta/80 flex items-center justify-center mx-auto mb-4 group-hover:bg-pp-magenta transition-colors cursor-pointer">
-                    <Play className="w-10 h-10 text-white fill-white ml-1" />
-                  </div>
-                  <p className="font-campaign text-lg tracking-wider text-gray-400">YOUTUBE FILM EMBED</p>
-                  <p className="font-primary text-sm text-gray-500 mt-1">Video placeholder</p>
-                </div>
-                <Badge className="absolute top-4 left-4 bg-pp-magenta text-white font-campaign">
+              {/* YouTube Embed */}
+              <div className="relative aspect-video bg-black">
+                <iframe
+                  src={`https://www.youtube.com/embed/${film.youtubeId}`}
+                  title={film.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full"
+                />
+                <Badge className="absolute top-4 left-4 bg-pp-magenta text-white font-campaign z-10">
                   <Calendar className="w-3 h-3 mr-1" />
                   {film.year}
                 </Badge>
               </div>
               
               <CardContent className="p-6">
-                <h3 className="font-primary font-bold text-xl mb-2">{film.title}</h3>
-                <p className="font-primary text-muted-foreground">{film.description}</p>
+                <h3 className="font-primary font-bold text-xl">{film.title}</h3>
               </CardContent>
             </Card>
           ))}
@@ -97,10 +89,18 @@ const Films = () => {
       {/* Call to Action */}
       <section className="py-16 bg-pp-lavender">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-campaign text-2xl tracking-wider text-pp-magenta mb-4">MORE COMING SOON</h2>
-          <p className="font-primary text-lg text-muted-foreground">
-            New films and video content are in production. Check back for updates or follow on social media.
+          <h2 className="font-campaign text-2xl tracking-wider text-pp-magenta mb-4">MORE CONTENT</h2>
+          <p className="font-primary text-lg text-muted-foreground mb-6">
+            With over 100 self-produced music videos and counting, Paperboy Love Prince continues to create visual content that pushes boundaries.
           </p>
+          <a 
+            href="https://www.youtube.com/@PaperboyPrince" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-block rounded-full bg-pp-magenta text-white font-bold px-8 py-4 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all"
+          >
+            Subscribe on YouTube
+          </a>
         </div>
       </section>
     </div>
