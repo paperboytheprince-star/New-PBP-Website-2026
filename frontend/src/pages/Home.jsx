@@ -53,10 +53,14 @@ const Home = () => {
         {heroImages.map((img, idx) => (
           <div 
             key={idx}
-            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ${
+            className={`absolute inset-0 transition-opacity duration-1000 ${
               currentSlide === idx ? 'opacity-100' : 'opacity-0'
             }`}
-            style={{ backgroundImage: `url(${img})` }}
+            style={{ 
+              backgroundImage: `url(${img})`,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center top',
+            }}
           />
         ))}
         {/* Pink overlay filter */}
@@ -129,7 +133,7 @@ const Home = () => {
             {[
               { icon: Heart, label: 'Community Members', value: '5,000+' },
               { icon: Users, label: 'Volunteers', value: '500+' },
-              { icon: Calendar, label: 'Events Held', value: '100+' },
+              { icon: Calendar, label: 'Events Held', value: '500+' },
               { icon: Megaphone, label: 'Actions Taken', value: '10,000+' },
             ].map((stat, idx) => (
               <Card 
