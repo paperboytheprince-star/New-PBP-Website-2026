@@ -32,7 +32,7 @@ const About = () => {
                 Paperboy<br />Love Prince
               </h1>
               <p className="font-primary text-lg text-muted-foreground mb-4 leading-relaxed">
-                Running for NYC Mayor 2025 — seeking to dismantle the establishment's grip on power and empower the people.
+                Running for Congress and New York State Assembly District 54 — seeking to dismantle the establishment's grip on power and empower the people.
               </p>
               <div className="flex flex-wrap gap-2 mb-6">
                 <Badge variant="outline" className="font-primary border-2 border-black">Puerto Rican</Badge>
@@ -68,11 +68,12 @@ const About = () => {
           <h2 className="font-campaign text-3xl tracking-wider text-pp-magenta mb-8 text-center">
             POLITICAL CAMPAIGNS
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
             {[
               { year: '2020', title: 'Congress', stat: '20% of vote', note: 'Opponent spent $400,000' },
               { year: '2021', title: 'NYC Mayor', stat: '9% rank choice vote', note: 'Most votes per dollar spent' },
-              { year: '2025', title: 'NYC Mayor', stat: 'Current Campaign', note: 'Running now' },
+              { year: '2026', title: 'Congress', stat: 'Current Campaign', note: 'Running now' },
+              { year: '2026', title: 'NY Assembly 54', stat: 'Current Campaign', note: 'Running now' },
             ].map((campaign, idx) => (
               <Card key={idx} className="bg-white rounded-2xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,153,204,1)]">
                 <CardContent className="p-6 text-center">
