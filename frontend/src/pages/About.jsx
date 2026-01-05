@@ -147,23 +147,12 @@ const About = () => {
         </div>
       </section>
 
-      {/* Location */}
-      <section className="py-16 bg-black text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <MapPin className="w-12 h-12 text-pp-magenta mx-auto mb-4" />
-          <h2 className="font-campaign text-2xl tracking-wider mb-4">PAPERBOY PRINCE LOVE GALLERY</h2>
-          <p className="font-primary text-gray-400 mb-2">1254 Myrtle Avenue</p>
-          <p className="font-secondary text-3xl md:text-4xl text-pp-pink">Bushwick, Brooklyn</p>
-        </div>
-      </section>
-
       {/* Quote */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
-        <Heart className="w-12 h-12 text-pp-magenta mx-auto mb-6 fill-pp-magenta" />
-        <blockquote className="font-primary text-2xl md:text-3xl font-bold leading-relaxed mb-6">
-          "With visionary ideas and unwavering determination, Paperboy Love Prince is poised to revolutionize the political landscape, promoting equity, justice, and a better future for all."
-        </blockquote>
-        <cite className="font-campaign text-xl text-pp-magenta tracking-wider">— PAPERBOY LOVE PRINCE 2026</cite>
+        <Heart className="w-16 h-16 text-pp-magenta mx-auto mb-6 fill-pp-magenta" />
+        <p className="font-secondary text-4xl md:text-5xl text-pp-magenta">
+          Spread love.
+        </p>
       </section>
     </div>
   );
