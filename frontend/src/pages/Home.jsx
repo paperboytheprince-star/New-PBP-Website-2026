@@ -4,15 +4,26 @@ import { postsAPI, adminAPI } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Skeleton } from '../components/ui/skeleton';
-import { ArrowRight, Heart, Users, Calendar, Megaphone, Play } from 'lucide-react';
+import { ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const heroImages = [
+    'https://customer-assets.emergentagent.com/job_prince-engage/artifacts/wdi4o708_IMG_5791_Original.jpg',
+    'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1600', // Brooklyn Bridge
+  ];
 
   useEffect(() => {
     loadData();
+    // Hero slideshow interval
+    const slideInterval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+    }, 6000);
+    return () => clearInterval(slideInterval);
   }, []);
 
   const loadData = async () => {
@@ -38,15 +49,36 @@ const Home = () => {
     <div className="noise-overlay">
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(https://images.unsplash.com/photo-1682447450943-c5785c84d047?w=1600)' }}
-        />
-        <div className="absolute inset-0 hero-gradient" />
+        {/* Slideshow Background */}
+        {heroImages.map((img, idx) => (
+          <div 
+            key={idx}
+            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 ${
+              currentSlide === idx ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ backgroundImage: `url(${img})` }}
+          />
+        ))}
+        {/* Pink overlay filter */}
+        <div className="absolute inset-0 bg-gradient-to-br from-pp-magenta/80 via-pp-pink/70 to-pp-magenta/80" />
+        
+        {/* Slide indicators */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+          {heroImages.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentSlide(idx)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                currentSlide === idx ? 'bg-white w-6' : 'bg-white/50'
+              }`}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
+        </div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
           <h1 className="hero-text font-primary font-extrabold text-white uppercase tracking-tight mb-6 drop-shadow-lg" data-testid="hero-title">
-            Join The<br />Love Revolution
+            Paperboy Prince<br />2026
           </h1>
           <p className="font-primary text-lg md:text-xl text-white/90 max-w-2xl mx-auto mb-8">
             Together we build community, create art, and make change happen. Everyone is welcome.
@@ -58,9 +90,21 @@ const Home = () => {
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <Link to="/events" data-testid="hero-cta-events">
+            <a 
+              href="https://secure.actblue.com/donate/paperboy-love-prince-2" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              data-testid="hero-cta-donate"
+            >
+              <Button className="rounded-full bg-pp-magenta text-white font-bold px-8 py-6 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black uppercase tracking-wider">
+                <DollarSign className="mr-2 w-5 h-5" />
+                Donate
+              </Button>
+            </a>
+            <Link to="/music" data-testid="hero-cta-music">
               <Button className="rounded-full bg-transparent text-white font-bold px-8 py-6 text-lg border-2 border-white hover:bg-white/10 transition-all uppercase tracking-wider">
-                Upcoming Events
+                <Music2 className="mr-2 w-5 h-5" />
+                Music
               </Button>
             </Link>
           </div>
@@ -72,7 +116,7 @@ const Home = () => {
         <div className="flex animate-marquee whitespace-nowrap">
           {[...Array(4)].map((_, i) => (
             <span key={i} className="font-campaign text-xl text-white tracking-widest mx-8">
-              SPREAD LOVE ★ PAPERBOY PRINCE ★ THE FUTURE IS NOW ★ JOIN THE MOVEMENT ★
+              SPREAD LOVE ★ PAPERBOY PRINCE 2026 ★ THE FUTURE IS NOW ★ JOIN THE MOVEMENT ★
             </span>
           ))}
         </div>
@@ -185,12 +229,24 @@ const Home = () => {
           <p className="font-primary text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join thousands of community members taking action every day. Your voice matters.
           </p>
-          <Link to="/register" data-testid="cta-register">
-            <Button className="rounded-full bg-pp-magenta text-white font-bold px-10 py-6 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black uppercase tracking-wider">
-              Join the Movement
-              <Heart className="ml-2 w-5 h-5 fill-white" />
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/register" data-testid="cta-register">
+              <Button className="rounded-full bg-pp-magenta text-white font-bold px-10 py-6 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black uppercase tracking-wider">
+                Join the Movement
+                <Heart className="ml-2 w-5 h-5 fill-white" />
+              </Button>
+            </Link>
+            <a 
+              href="https://secure.actblue.com/donate/paperboy-love-prince-2" 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Button className="rounded-full bg-white text-pp-magenta font-bold px-10 py-6 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black uppercase tracking-wider">
+                <DollarSign className="mr-2 w-5 h-5" />
+                Donate Now
+              </Button>
+            </a>
+          </div>
         </div>
       </section>
     </div>
