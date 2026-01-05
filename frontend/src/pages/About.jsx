@@ -93,9 +93,6 @@ const About = () => {
             Passionate about addressing societal inequalities, Paperboy Love Prince founded OurFoodNYC, a mutual aid food group that has distributed over $4 million worth of free food across the five boroughs. They also played a pivotal role in launching and filling over 50 community fridges in NYC, ensuring that those in need have access to essential resources. Their dedication to addressing homelessness led them to establish TinyHouseNYC, constructing free tiny homes for the unhoused and providing over 150 nights of free housing.
           </p>
           <p className="font-primary text-lg leading-relaxed mb-6">
-            At the Paperboy Prince Love Gallery, located at 1254 Myrtle Avenue in Bushwick, Brooklyn, Paperboy Love Prince has created a futuristic mutual aid hub and community space. This transformative endeavor has facilitated the distribution of millions of pounds of food, clothing, and books, fostering a sense of unity and support within the community.
-          </p>
-          <p className="font-primary text-lg leading-relaxed mb-6">
             Recognized for their remarkable achievements, Paperboy Love Prince has been featured in prestigious publications such as Rolling Stone, The Wall Street Journal, The Harvard Political Review, and The New Yorker. They were recognized and awarded for their achievements by the Harvard University Shorenstein Center on Media, Politics and Public Policy. Brooklyn Magazine named them one of the 50 most influential people in Brooklyn, a testament to the profound impact they have had on their community.
           </p>
           <p className="font-primary text-lg leading-relaxed mb-6">
