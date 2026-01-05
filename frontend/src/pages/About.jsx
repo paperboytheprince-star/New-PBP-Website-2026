@@ -31,14 +31,9 @@ const About = () => {
               <h1 className="font-primary font-extrabold text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight mb-6" data-testid="about-title">
                 Paperboy<br />Love Prince
               </h1>
-              <p className="font-primary text-lg text-muted-foreground mb-4 leading-relaxed">
+              <p className="font-primary text-lg text-muted-foreground mb-6 leading-relaxed">
                 Running for Congress and New York State Assembly District 54 — seeking to dismantle the establishment's grip on power and empower the people.
               </p>
-              <div className="flex flex-wrap gap-2 mb-6">
-                <Badge variant="outline" className="font-primary border-2 border-black">Puerto Rican</Badge>
-                <Badge variant="outline" className="font-primary border-2 border-black">Colombian</Badge>
-                <Badge variant="outline" className="font-primary border-2 border-black">Panamanian</Badge>
-              </div>
             </div>
           </div>
         </div>
@@ -48,7 +43,7 @@ const About = () => {
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
         <div className="prose prose-lg max-w-none">
           <p className="font-primary text-lg leading-relaxed mb-6">
-            Paperboy Love Prince is a remarkable individual who seamlessly blends the worlds of politics and artistry, leaving an indelible mark on both. Born to Puerto Rican, Colombian, and Panamanian grandparents, they embody a rich cultural heritage that fuels their passion for serving others. It was in 1964 that their grandparents, recognizing the plight of the less fortunate, founded the Elim International Fellowship Church, a beacon of hope and support in their community.
+            Paperboy Love Prince is a remarkable individual who seamlessly blends the worlds of politics and artistry, leaving an indelible mark on both. It was in 1964 that their grandparents, recognizing the plight of the less fortunate, founded the Elim International Fellowship Church, a beacon of hope and support in their community.
           </p>
           <p className="font-primary text-lg leading-relaxed mb-6">
             With a thirst for knowledge, Paperboy Love Prince pursued their education at the University of Maryland College Park, where they earned their degree studying computer science and broadcast journalism. Seeking a broader understanding of the world, they later attended the Universidad de Alicante in Spain, immersing themselves in the study of international relations and government. Their two years living abroad in Spain opened their eyes to the interconnectedness of global issues and deepened their commitment to effecting positive change.
