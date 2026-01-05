@@ -194,7 +194,7 @@ const Layout = () => {
             <div>
               <h4 className="font-campaign text-lg tracking-wider mb-4 text-pp-pink">ADMIN</h4>
               <div className="flex flex-col gap-2">
-                <Link to="/admin" className="font-primary text-gray-400 hover:text-pp-pink transition-colors" data-testid="footer-admin-link">
+                <Link to="/login" className="font-primary text-gray-400 hover:text-pp-pink transition-colors" data-testid="footer-admin-link">
                   Admin Login
                 </Link>
               </div>

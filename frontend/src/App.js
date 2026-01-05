@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "./components/ui/sonner";
 import { AuthProvider } from "./context/AuthContext";
 import Layout from "./components/Layout";
@@ -11,7 +11,6 @@ import Films from "./pages/Films";
 import Music from "./pages/Music";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
 import "./App.css";
@@ -33,7 +32,8 @@ function App() {
           </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/admin" element={<AdminLogin />} />
+          {/* Redirect old admin login to regular login */}
+          <Route path="/admin" element={<Navigate to="/login" replace />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
         <Toaster position="top-right" richColors />
