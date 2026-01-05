@@ -54,8 +54,13 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    if (!isAuthenticated || !isAdmin) {
-      navigate('/admin');
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    if (!isAdmin) {
+      toast.error('Admin access required');
+      navigate('/');
       return;
     }
     loadAllData();
