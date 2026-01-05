@@ -168,7 +168,7 @@ const About = () => {
         <blockquote className="font-primary text-2xl md:text-3xl font-bold leading-relaxed mb-6">
           "With visionary ideas and unwavering determination, Paperboy Love Prince is poised to revolutionize the political landscape, promoting equity, justice, and a better future for all."
         </blockquote>
-        <cite className="font-campaign text-xl text-pp-magenta tracking-wider">— PAPERBOY LOVE PRINCE FOR MAYOR 2025</cite>
+        <cite className="font-campaign text-xl text-pp-magenta tracking-wider">— PAPERBOY LOVE PRINCE 2026</cite>
       </section>
     </div>
   );
