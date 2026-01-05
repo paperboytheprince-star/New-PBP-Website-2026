@@ -1,4 +1,4 @@
-import { Heart, MapPin, Award, Users, Music2, Film, Building } from 'lucide-react';
+import { Heart, Award, Users, Music2, Film, Building } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 
