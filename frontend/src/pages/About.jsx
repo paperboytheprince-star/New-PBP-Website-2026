@@ -81,7 +81,7 @@ const About = () => {
             ))}
           </div>
           <p className="font-primary text-center text-lg text-muted-foreground max-w-2xl mx-auto">
-            Nearly <span className="font-bold text-pp-magenta">100,000 votes</span> received across political campaigns throughout New York City.
+            Nearly <span className="font-bold text-pp-magenta">350,000 votes</span> received across political campaigns throughout New York City.
           </p>
         </div>
       </section>
