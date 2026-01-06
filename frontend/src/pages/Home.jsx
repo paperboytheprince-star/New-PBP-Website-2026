@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { postsAPI, adminAPI } from '../lib/api';
+import { postsAPI } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Skeleton } from '../components/ui/skeleton';
-import { ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign } from 'lucide-react';
+import { ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Home = () => {
@@ -28,13 +28,6 @@ const Home = () => {
 
   const loadData = async () => {
     try {
-      // Try to seed data first
-      try {
-        await adminAPI.seed();
-      } catch {
-        // Already seeded, ignore
-      }
-      
       const response = await postsAPI.getAll();
       setPosts(response.data);
     } catch (error) {
@@ -215,10 +208,13 @@ const Home = () => {
         )}
 
         {posts.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <Heart className="w-16 h-16 text-pp-pink mx-auto mb-4" />
-            <p className="font-primary text-lg text-muted-foreground">
-              No posts yet. Check back soon!
+          <div className="text-center py-12 px-4 bg-muted rounded-3xl border-2 border-dashed border-gray-300">
+            <FileText className="w-16 h-16 text-pp-pink mx-auto mb-4" />
+            <p className="font-primary text-lg text-muted-foreground mb-2">
+              No updates yet.
+            </p>
+            <p className="font-primary text-sm text-muted-foreground">
+              Admins can create the first post.
             </p>
           </div>
         )}
