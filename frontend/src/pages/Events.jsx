@@ -225,10 +225,10 @@ const Events = () => {
         )}
 
         {events.length === 0 && !loading && (
-          <div className="text-center py-12">
+          <div className="text-center py-12 px-4 bg-muted rounded-3xl border-2 border-dashed border-gray-300">
             <Calendar className="w-16 h-16 text-pp-pink mx-auto mb-4" />
             <p className="font-primary text-lg text-muted-foreground">
-              No upcoming events. Check back soon!
+              No events posted yet.
             </p>
           </div>
         )}
