@@ -77,7 +77,7 @@ class AdminUserResponse(BaseModel):
     is_admin: bool
     created_at: str
     last_login_at: Optional[str] = None
-    status: str = "active"
+    user_status: str = "active"
 
 class AuditLogResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
