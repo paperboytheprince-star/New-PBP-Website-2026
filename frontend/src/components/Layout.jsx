@@ -135,17 +135,31 @@ const Layout = () => {
               <SheetContent side="right" className="w-[280px] border-l-2 border-black">
                 <div className="flex flex-col gap-6 mt-8">
                   {navLinks.map((link) => (
-                    <Link
-                      key={link.path}
-                      to={link.path}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`font-campaign text-2xl tracking-wider ${
-                        location.pathname === link.path ? 'text-pp-magenta' : 'text-black'
-                      }`}
-                      data-testid={`mobile-nav-${link.label.toLowerCase()}`}
-                    >
-                      {link.label}
-                    </Link>
+                    link.external ? (
+                      <a
+                        key={link.path}
+                        href={link.path}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="font-campaign text-2xl tracking-wider text-black"
+                        data-testid={`mobile-nav-${link.label.toLowerCase()}`}
+                      >
+                        {link.label}
+                      </a>
+                    ) : (
+                      <Link
+                        key={link.path}
+                        to={link.path}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`font-campaign text-2xl tracking-wider ${
+                          location.pathname === link.path ? 'text-pp-magenta' : 'text-black'
+                        }`}
+                        data-testid={`mobile-nav-${link.label.toLowerCase()}`}
+                      >
+                        {link.label}
+                      </Link>
+                    )
                   ))}
                   {!isAuthenticated && (
                     <Link
