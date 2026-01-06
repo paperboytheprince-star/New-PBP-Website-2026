@@ -183,39 +183,48 @@ backend:
 frontend:
   - task: "Admin Users page at /admin/users"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/AdminUsers.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Created with user table, search, sorting, and password reset dialog"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Admin Users page working perfectly. Fixed authentication timing issue by adding authLoading check. All features working: user table display, search by email, sorting by columns, password reset dialog with link generation."
 
   - task: "Password Reset page at /reset-password"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/ResetPassword.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Created with token validation, password requirements display, success state"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Reset Password page working correctly. Displays password requirements, validates input, shows success state. Password validation messages display properly."
 
   - task: "Admin access control - 403 for non-admins"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/pages/AdminUsers.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Checks isAdmin before rendering, redirects non-admins with toast"
+        - working: true
+          agent: "testing"
+          comment: "✅ TESTED: Access control working correctly. Non-admin users are properly redirected away from /admin/users page. Admin users can access the page successfully."
 
 metadata:
   created_by: "main_agent"
