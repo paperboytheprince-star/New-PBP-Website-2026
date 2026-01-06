@@ -54,6 +54,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
+    if (authLoading) return; // Wait for auth to load
+    
     if (!isAuthenticated) {
       navigate('/login');
       return;
@@ -64,7 +66,7 @@ const AdminDashboard = () => {
       return;
     }
     loadAllData();
-  }, [isAuthenticated, isAdmin, navigate]);
+  }, [isAuthenticated, isAdmin, navigate, authLoading]);
 
   const loadAllData = async () => {
     try {
