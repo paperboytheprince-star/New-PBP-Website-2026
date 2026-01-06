@@ -266,7 +266,7 @@ const AdminDashboard = () => {
     toast.success('Subscribers exported!');
   };
 
-  if (!isAuthenticated || !isAdmin) {
+  if (authLoading || !isAuthenticated || !isAdmin) {
     return null;
   }
 
