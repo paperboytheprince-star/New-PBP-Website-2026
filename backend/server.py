@@ -57,6 +57,10 @@ class UserUpdate(BaseModel):
     name: Optional[str] = None
     is_admin: Optional[bool] = None
 
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
 # Post Models
 class PostCreate(BaseModel):
     title: str
