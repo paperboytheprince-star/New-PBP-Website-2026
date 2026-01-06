@@ -229,11 +229,6 @@ const Layout = () => {
                     </Link>
                   )
                 ))}
-                    className="font-primary text-gray-400 hover:text-pp-pink transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
               </div>
             </div>
           </div>
