@@ -139,7 +139,7 @@ const AdminUsers = () => {
     }
   };
 
-  if (!isAuthenticated || !isAdmin) {
+  if (authLoading || (!isAuthenticated || !isAdmin)) {
     return null;
   }
 
