@@ -102,173 +102,123 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Update site branding, metadata, icons, security, and background SEO only. Remove Emergent branding, add document title/meta tags/favicons, ensure HTTPS, add background SEO."
+user_problem_statement: "Build Admin-only User Management feature with password reset, access control, and rotate admin password for paperboytheprince@gmail.com"
+
+backend:
+  - task: "GET /api/admin/users - List users with search/sort"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented with search by email, sorting by multiple fields"
+
+  - task: "POST /api/admin/users/:id/reset-password - Generate reset link"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Implemented with rate limiting, audit logging, secure token generation"
+
+  - task: "POST /api/auth/reset-password - Reset password with token"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Public endpoint with token validation, password policy, bcrypt hashing"
+
+  - task: "Rate limiting on reset actions"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "5 requests per 60 second window using in-memory store"
+
+  - task: "Audit logging for password resets"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Logs admin_id, target_user, timestamp, outcome to audit_logs collection"
 
 frontend:
-  - task: "Remove Emergent branding badge"
+  - task: "Admin Users page at /admin/users"
     implemented: true
-    working: true
-    file: "/app/frontend/public/index.html"
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminUsers.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "Removed the Made with Emergent badge from index.html by completely rewriting the file without the badge HTML and script"
-        - working: true
-          agent: "testing"
-          comment: "VERIFIED: No Emergent branding found anywhere on the page. The 'Made with Emergent' badge has been completely removed from the bottom-right corner and no Emergent-related text or elements exist."
+          comment: "Created with user table, search, sorting, and password reset dialog"
 
-  - task: "Document title set to Paperboy Prince"
+  - task: "Password Reset page at /reset-password"
     implemented: true
-    working: true
-    file: "/app/frontend/public/index.html"
+    working: "NA"
+    file: "/app/frontend/src/pages/ResetPassword.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "Updated title tag to Paperboy Prince"
-        - working: true
-          agent: "testing"
-          comment: "VERIFIED: Browser tab title is exactly 'Paperboy Prince' (not 'Emergent | Fullstack App'). Document title test passed."
+          comment: "Created with token validation, password requirements display, success state"
 
-  - task: "Meta description and keywords"
+  - task: "Admin access control - 403 for non-admins"
     implemented: true
-    working: true
-    file: "/app/frontend/public/index.html"
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminUsers.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "NA"
           agent: "main"
-          comment: "Added meta description, keywords for NY congressional races, NYC musicians/artists"
-        - working: true
-          agent: "testing"
-          comment: "VERIFIED: Meta description is exactly 'Together we build community, create art, and make change happen. Everyone is welcome.' Keywords include NY congressional races, NYC musicians/artists."
-
-  - task: "Open Graph metadata"
-    implemented: true
-    working: true
-    file: "/app/frontend/public/index.html"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Added og:title, og:description, og:type, og:image pointing to /og-image.png"
-        - working: true
-          agent: "testing"
-          comment: "VERIFIED: All Open Graph tags correct - og:title='Paperboy Prince', og:description matches meta description, og:image='/og-image.png'. Facebook sharing metadata is properly configured."
-
-  - task: "Twitter/X metadata"
-    implemented: true
-    working: true
-    file: "/app/frontend/public/index.html"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Added twitter:card, twitter:title, twitter:description, twitter:image"
-        - working: true
-          agent: "testing"
-          comment: "VERIFIED: All Twitter meta tags correct - twitter:card='summary_large_image', twitter:title='Paperboy Prince', twitter:image='/og-image.png'. Twitter/X sharing metadata is properly configured."
-
-  - task: "Favicon and site icons"
-    implemented: true
-    working: true
-    file: "/app/frontend/public/"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Created favicon.ico, favicon-16x16.png, favicon-32x32.png, apple-touch-icon.png, og-image.png from provided logo assets"
-        - working: true
-          agent: "testing"
-          comment: "VERIFIED: Favicon (PP logo - pink circle with PP letters) is loading correctly in browser tab. Found 4 favicon elements: favicon.ico, favicon-32x32.png, favicon-16x16.png, and apple-touch-icon.png. All are accessible."
-
-  - task: "robots.txt configuration"
-    implemented: true
-    working: true
-    file: "/app/frontend/public/robots.txt"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Created robots.txt allowing all crawlers with sitemap reference"
-        - working: true
-          agent: "testing"
-          comment: "VERIFIED: robots.txt is accessible at /robots.txt (Status: 200). Contains proper directives allowing all crawlers and references sitemap.xml."
-
-  - task: "sitemap.xml"
-    implemented: true
-    working: true
-    file: "/app/frontend/public/sitemap.xml"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Created sitemap.xml with all main pages (home, about, films, music, events, action)"
-        - working: true
-          agent: "testing"
-          comment: "VERIFIED: sitemap.xml is accessible at /sitemap.xml (Status: 200). Contains all main pages with proper XML structure, lastmod dates, and priority settings."
-
-  - task: "JSON-LD structured data"
-    implemented: true
-    working: true
-    file: "/app/frontend/public/index.html"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Added JSON-LD for Organization, Person, and WebSite schemas with NY congressional/artist keywords"
-        - working: true
-          agent: "testing"
-          comment: "VERIFIED: Found 3 valid JSON-LD structured data scripts in page source - Organization, Person, and WebSite schemas. All contain proper @type and relevant NY congressional/artist keywords."
-
-  - task: "No mixed content (HTTPS only)"
-    implemented: true
-    working: true
-    file: "/app/frontend/src/"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Verified no http:// URLs exist in source code - all external assets use https://"
-        - working: true
-          agent: "testing"
-          comment: "VERIFIED: No mixed content warnings found in console. No insecure HTTP resources detected. All assets are served over HTTPS."
+          comment: "Checks isAdmin before rendering, redirects non-admins with toast"
 
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 2
+  test_sequence: 3
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "Admin Users page at /admin/users"
+    - "Password Reset page at /reset-password"
+    - "Admin access control - 403 for non-admins"
+    - "GET /api/admin/users - List users with search/sort"
+    - "POST /api/admin/users/:id/reset-password - Generate reset link"
   stuck_tasks: []
-  test_all: false
+  test_all: true
   test_priority: "high_first"
 
 agent_communication:
     - agent: "main"
-      message: "Implemented all production SEO, branding, and metadata updates. Please verify: 1) The Made with Emergent badge is removed from the page, 2) Page title is 'Paperboy Prince', 3) Favicon is loading (PP logo), 4) Meta tags are present in page source, 5) JSON-LD structured data is valid. Check http://localhost:3000 and view page source for meta tags."
-    - agent: "testing"
-      message: "COMPREHENSIVE TESTING COMPLETED: All 10 SEO, branding, and metadata tasks have been successfully verified and are working correctly. ✅ Emergent branding completely removed ✅ Document title is 'Paperboy Prince' ✅ Favicon (PP logo) loading correctly ✅ All meta tags (description, Open Graph, Twitter) are correct ✅ JSON-LD structured data present (3 schemas) ✅ Static files accessible (favicon.ico, robots.txt, sitemap.xml, og-image.png) ✅ No mixed content warnings ✅ Visual layout unchanged. All production SEO and branding updates are ready for deployment."
+      message: "Implemented Admin User Management feature. Please test: 1) Login as admin (paperboytheprince@gmail.com / PaperboyAdmin#2025!Secure1), 2) Navigate to /admin/users, 3) Verify user table shows with search and sort, 4) Test password reset flow - generate link and verify it works, 5) Verify non-admin users cannot access /admin/users (should redirect)"
