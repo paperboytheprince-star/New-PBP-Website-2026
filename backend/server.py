@@ -448,6 +448,55 @@ async def change_password(password_data: PasswordChange, user: dict = Depends(ge
     
     return {"message": "Password changed successfully"}
 
+@api_router.post("/auth/reset-password")
+async def reset_password_with_token(reset_data: PasswordResetRequest):
+    """Reset password using a one-time token (public endpoint)"""
+    # Rate limit by token to prevent brute force
+    if not check_rate_limit(f"reset:{reset_data.token[:8]}"):
+        raise HTTPException(status_code=429, detail="Too many attempts. Please wait before trying again.")
+    
+    # Hash the provided token to compare with stored hash
+    token_hash = hash_reset_token(reset_data.token)
+    
+    # Find the reset token
+    reset_doc = await db.password_resets.find_one({"token_hash": token_hash}, {"_id": 0})
+    if not reset_doc:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    # Check if token is expired
+    expiry = datetime.fromisoformat(reset_doc["expires_at"].replace('Z', '+00:00'))
+    if datetime.now(timezone.utc) > expiry:
+        # Clean up expired token
+        await db.password_resets.delete_one({"token_hash": token_hash})
+        raise HTTPException(status_code=400, detail="Reset token has expired")
+    
+    # Check if token was already used
+    if reset_doc.get("used"):
+        raise HTTPException(status_code=400, detail="Reset token has already been used")
+    
+    # Validate new password
+    is_valid, error_msg = validate_password(reset_data.new_password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error_msg)
+    
+    # Update user password
+    new_hash = hash_password(reset_data.new_password)
+    result = await db.users.update_one(
+        {"id": reset_doc["user_id"]},
+        {"$set": {"password_hash": new_hash}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Invalidate the token
+    await db.password_resets.update_one(
+        {"token_hash": token_hash},
+        {"$set": {"used": True, "used_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Password reset successfully. You can now log in with your new password."}
+
 # ============ POST ROUTES ============
 
 @api_router.get("/posts", response_model=List[PostResponse])
