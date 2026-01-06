@@ -109,8 +109,10 @@ export const notifyAPI = {
 // Admin
 export const adminAPI = {
   getStats: () => api.get('/admin/stats'),
-  getUsers: () => api.get('/admin/users'),
+  getUsers: (params = {}) => api.get('/admin/users', { params }),
   updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
+  resetUserPassword: (userId) => api.post(`/admin/users/${userId}/reset-password`),
+  getAuditLogs: (params = {}) => api.get('/admin/audit-logs', { params }),
   seed: () => api.post('/seed'),
 };
 
