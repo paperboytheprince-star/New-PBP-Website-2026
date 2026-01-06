@@ -61,6 +61,32 @@ class PasswordChange(BaseModel):
     current_password: str
     new_password: str
 
+class PasswordResetRequest(BaseModel):
+    token: str
+    new_password: str
+
+class AdminUserResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    email: str
+    name: str
+    is_admin: bool
+    created_at: str
+    last_login_at: Optional[str] = None
+    status: str = "active"
+
+class AuditLogResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    action: str
+    admin_id: str
+    admin_email: str
+    target_user_id: Optional[str] = None
+    target_email: Optional[str] = None
+    details: Optional[str] = None
+    timestamp: str
+    outcome: str
+
 # Post Models
 class PostCreate(BaseModel):
     title: str
