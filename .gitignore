@@ -30,6 +30,10 @@ next-env.d.ts
 dist/
 dist
 
+# Allow frontend/build for Bluehost static deployment
+!frontend/build/
+!frontend/build/**
+
 # Environment files (comprehensive coverage)
 
 *token.json*
