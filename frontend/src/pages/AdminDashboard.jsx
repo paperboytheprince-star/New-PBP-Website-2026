@@ -40,7 +40,7 @@ import { toast } from 'sonner';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout, loading: authLoading } = useAuth();
   const [stats, setStats] = useState(null);
   const [posts, setPosts] = useState([]);
   const [products, setProducts] = useState([]);
