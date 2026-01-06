@@ -6,23 +6,20 @@ import json
 from datetime import datetime, timezone
 import uuid
 
-class PaperboyPrinceAPITester:
+class ProductionLaunchTester:
     def __init__(self, base_url="https://prince-engage.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_base = f"{base_url}/api"
         self.token = None
-        self.admin_token = None
-        self.user_id = None
-        self.admin_id = None
         self.tests_run = 0
         self.tests_passed = 0
         self.failed_tests = []
+        self.admin_email = "admin@paperboyprince.com"
+        self.admin_password = "admin123"
         
         # Test data storage
         self.created_post_id = None
-        self.created_product_id = None
         self.created_event_id = None
-        self.created_action_id = None
 
     def log_result(self, test_name, success, details=""):
         """Log test result"""
