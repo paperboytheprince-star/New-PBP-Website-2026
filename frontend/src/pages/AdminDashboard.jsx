@@ -884,8 +884,14 @@ const AdminDashboard = () => {
           {/* Users Tab */}
           <TabsContent value="users">
             <Card className="border-2 border-black rounded-xl">
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="font-campaign text-2xl tracking-wider">MANAGE USERS</CardTitle>
+                <Link to="/admin/users">
+                  <Button className="rounded-full bg-pp-magenta text-white border-2 border-black" data-testid="manage-users-button">
+                    <Users className="w-4 h-4 mr-2" />
+                    Full User Management
+                  </Button>
+                </Link>
               </CardHeader>
               <CardContent>
                 <Table>
