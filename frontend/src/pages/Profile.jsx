@@ -20,6 +20,8 @@ const Profile = () => {
   const [events, setEvents] = useState([]);
   const [actions, setActions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
