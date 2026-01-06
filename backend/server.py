@@ -326,6 +326,31 @@ async def admin_login(login_data: UserLogin):
 async def get_me(user: dict = Depends(get_current_user)):
     return user
 
+@api_router.post("/auth/change-password")
+async def change_password(password_data: PasswordChange, user: dict = Depends(get_current_user)):
+    """Change password for authenticated user"""
+    # Get current user from database
+    db_user = await db.users.find_one({"id": user["id"]}, {"_id": 0})
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify current password
+    if not verify_password(password_data.current_password, db_user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Current password is incorrect")
+    
+    # Validate new password
+    if len(password_data.new_password) < 8:
+        raise HTTPException(status_code=400, detail="New password must be at least 8 characters")
+    
+    # Update password
+    new_hash = hash_password(password_data.new_password)
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"password_hash": new_hash}}
+    )
+    
+    return {"message": "Password changed successfully"}
+
 # ============ POST ROUTES ============
 
 @api_router.get("/posts", response_model=List[PostResponse])
