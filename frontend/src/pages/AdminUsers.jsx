@@ -47,6 +47,8 @@ const AdminUsers = () => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return; // Wait for auth to load
+    
     if (!isAuthenticated) {
       navigate('/login');
       return;
@@ -57,7 +59,7 @@ const AdminUsers = () => {
       return;
     }
     loadUsers();
-  }, [isAuthenticated, isAdmin, navigate, searchQuery, sortBy, sortOrder]);
+  }, [isAuthenticated, isAdmin, navigate, searchQuery, sortBy, sortOrder, authLoading]);
 
   const loadUsers = async () => {
     try {
