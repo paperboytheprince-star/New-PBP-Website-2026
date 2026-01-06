@@ -11,7 +11,9 @@ import Music from "./pages/Music";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminUsers from "./pages/AdminUsers";
 import Profile from "./pages/Profile";
+import ResetPassword from "./pages/ResetPassword";
 import "./App.css";
 
 // External redirect component for Shop
@@ -37,9 +39,11 @@ function App() {
           <Route path="/shop" element={<ShopRedirect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           {/* Redirect old admin login to regular login */}
           <Route path="/admin" element={<Navigate to="/login" replace />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
         </Routes>
         <Toaster position="top-right" richColors />
       </BrowserRouter>
