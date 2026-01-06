@@ -34,7 +34,7 @@ import { format, parseISO } from 'date-fns';
 
 const AdminUsers = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isAdmin } = useAuth();
+  const { user, isAuthenticated, isAdmin, loading: authLoading } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
