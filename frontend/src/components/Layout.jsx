@@ -53,16 +53,29 @@ const Layout = () => {
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`nav-link font-campaign text-lg tracking-widest transition-colors ${
-                  location.pathname === link.path ? 'text-pp-magenta' : 'text-black hover:text-pp-magenta'
-                }`}
-                data-testid={`nav-${link.label.toLowerCase()}`}
-              >
-                {link.label}
-              </Link>
+              link.external ? (
+                <a
+                  key={link.path}
+                  href={link.path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nav-link font-campaign text-lg tracking-widest transition-colors text-black hover:text-pp-magenta"
+                  data-testid={`nav-${link.label.toLowerCase()}`}
+                >
+                  {link.label}
+                </a>
+              ) : (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`nav-link font-campaign text-lg tracking-widest transition-colors ${
+                    location.pathname === link.path ? 'text-pp-magenta' : 'text-black hover:text-pp-magenta'
+                  }`}
+                  data-testid={`nav-${link.label.toLowerCase()}`}
+                >
+                  {link.label}
+                </Link>
+              )
             ))}
           </div>
 
@@ -70,11 +83,6 @@ const Layout = () => {
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
               <>
-                <Link to="/shop" data-testid="cart-button">
-                  <Button variant="ghost" size="icon" className="relative">
-                    <ShoppingCart className="w-5 h-5" />
-                  </Button>
-                </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button 
