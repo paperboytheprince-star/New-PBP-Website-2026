@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import uuid
 
 class ProductionLaunchTester:
-    def __init__(self, base_url="https://prince-engage.preview.emergentagent.com"):
+    def __init__(self, base_url="https://prince-media.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_base = f"{base_url}/api"
         self.token = None
