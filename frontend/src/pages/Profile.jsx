@@ -270,6 +270,61 @@ const Profile = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Change Password Section */}
+      <Card className="rounded-3xl border-2 border-black mt-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 font-campaign text-2xl tracking-wider">
+            <Key className="w-6 h-6 text-pp-magenta" />
+            CHANGE PASSWORD
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
+            <div>
+              <Label htmlFor="currentPassword" className="font-primary">Current Password</Label>
+              <Input
+                id="currentPassword"
+                type="password"
+                value={passwordForm.currentPassword}
+                onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                required
+                className="mt-1 border-2 border-black rounded-xl"
+              />
+            </div>
+            <div>
+              <Label htmlFor="newPassword" className="font-primary">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={passwordForm.newPassword}
+                onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                required
+                minLength={8}
+                className="mt-1 border-2 border-black rounded-xl"
+              />
+            </div>
+            <div>
+              <Label htmlFor="confirmPassword" className="font-primary">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={passwordForm.confirmPassword}
+                onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                required
+                className="mt-1 border-2 border-black rounded-xl"
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={changingPassword}
+              className="rounded-full bg-pp-magenta text-white font-bold px-6 py-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all"
+            >
+              {changingPassword ? 'Changing...' : 'Change Password'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };
