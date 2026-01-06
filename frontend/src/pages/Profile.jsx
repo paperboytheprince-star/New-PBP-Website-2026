@@ -77,6 +77,28 @@ const Profile = () => {
     toast.success('Logged out successfully');
   };
 
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    if (passwordForm.newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      await authAPI.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
+      toast.success('Password changed successfully');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   const myEvents = events.filter(e => myRsvps.includes(e.id));
   const myActions = actions.filter(a => mySignups.includes(a.id));
 
