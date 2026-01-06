@@ -190,8 +190,12 @@ const Layout = () => {
             {/* Logo & Tagline */}
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-pp-magenta rounded-full flex items-center justify-center">
-                  <Heart className="w-7 h-7 text-white fill-white" />
+                <div className="w-12 h-12 bg-pp-magenta rounded-full flex items-center justify-center overflow-hidden">
+                  <img 
+                    src="https://customer-assets.emergentagent.com/job_prince-engage/artifacts/hk4rzvx8_PaperboyPrince_PrimaryLogo-06.png"
+                    alt="Paperboy Prince Logo"
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <span className="font-campaign text-2xl tracking-wider">PAPERBOY PRINCE</span>
               </div>
@@ -205,9 +209,26 @@ const Layout = () => {
               <h4 className="font-campaign text-lg tracking-wider mb-4 text-pp-pink">QUICK LINKS</h4>
               <div className="flex flex-col gap-2">
                 {navLinks.map((link) => (
-                  <Link
-                    key={link.path}
-                    to={link.path}
+                  link.external ? (
+                    <a
+                      key={link.path}
+                      href={link.path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-primary text-gray-400 hover:text-pp-pink transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link
+                      key={link.path}
+                      to={link.path}
+                      className="font-primary text-gray-400 hover:text-pp-pink transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                ))}
                     className="font-primary text-gray-400 hover:text-pp-pink transition-colors"
                   >
                     {link.label}
