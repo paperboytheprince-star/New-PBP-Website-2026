@@ -279,6 +279,69 @@ async def get_admin_user(credentials: HTTPAuthorizationCredentials = Depends(sec
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
 
+# ============ RATE LIMITING ============
+rate_limit_store = defaultdict(list)
+RATE_LIMIT_WINDOW = 60  # seconds
+RATE_LIMIT_MAX_REQUESTS = 5  # max reset requests per window
+
+def check_rate_limit(key: str) -> bool:
+    """Check if action is rate limited. Returns True if allowed, False if blocked."""
+    now = time.time()
+    # Clean old entries
+    rate_limit_store[key] = [t for t in rate_limit_store[key] if now - t < RATE_LIMIT_WINDOW]
+    if len(rate_limit_store[key]) >= RATE_LIMIT_MAX_REQUESTS:
+        return False
+    rate_limit_store[key].append(now)
+    return True
+
+# ============ RESET TOKEN HELPERS ============
+RESET_TOKEN_EXPIRY_MINUTES = 60
+
+def generate_reset_token() -> tuple[str, str]:
+    """Generate a reset token and its hash. Returns (plain_token, hashed_token)"""
+    plain_token = secrets.token_urlsafe(32)
+    hashed_token = hashlib.sha256(plain_token.encode()).hexdigest()
+    return plain_token, hashed_token
+
+def hash_reset_token(token: str) -> str:
+    """Hash a reset token for comparison"""
+    return hashlib.sha256(token.encode()).hexdigest()
+
+async def create_audit_log(action: str, admin_id: str, admin_email: str, 
+                           target_user_id: str = None, target_email: str = None,
+                           details: str = None, outcome: str = "success"):
+    """Create an audit log entry"""
+    log_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    log_doc = {
+        "id": log_id,
+        "action": action,
+        "admin_id": admin_id,
+        "admin_email": admin_email,
+        "target_user_id": target_user_id,
+        "target_email": target_email,
+        "details": details,
+        "timestamp": now,
+        "outcome": outcome
+    }
+    await db.audit_logs.insert_one(log_doc)
+    return log_doc
+
+def validate_password(password: str) -> tuple[bool, str]:
+    """Validate password meets security requirements"""
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters"
+    if not any(c.isupper() for c in password):
+        return False, "Password must contain at least one uppercase letter"
+    if not any(c.islower() for c in password):
+        return False, "Password must contain at least one lowercase letter"
+    if not any(c.isdigit() for c in password):
+        return False, "Password must contain at least one number"
+    if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password):
+        return False, "Password must contain at least one special character"
+    return True, ""
+
 # ============ AUTH ROUTES ============
 
 @api_router.post("/auth/register")
