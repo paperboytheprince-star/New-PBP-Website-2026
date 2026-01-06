@@ -233,14 +233,9 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Admin Users page at /admin/users"
-    - "Password Reset page at /reset-password"
-    - "Admin access control - 403 for non-admins"
-    - "GET /api/admin/users - List users with search/sort"
-    - "POST /api/admin/users/:id/reset-password - Generate reset link"
+  current_focus: []
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
