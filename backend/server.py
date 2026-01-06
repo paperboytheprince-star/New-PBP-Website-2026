@@ -778,15 +778,15 @@ async def update_user_admin(user_id: str, user_data: UserUpdate, admin: dict = D
 
 @api_router.post("/seed")
 async def seed_data():
-    """Seed initial demo data"""
-    # Check if already seeded
-    existing_posts = await db.posts.count_documents({})
-    if existing_posts > 0:
-        return {"message": "Data already seeded"}
+    """Seed initial admin user only - no demo posts/events for production"""
+    # Check if admin already exists
+    existing_admin = await db.users.find_one({"email": "admin@paperboyprince.com"})
+    if existing_admin:
+        return {"message": "Admin already exists"}
     
     now = datetime.now(timezone.utc).isoformat()
     
-    # Create demo admin
+    # Create admin user only
     admin_id = str(uuid.uuid4())
     admin_doc = {
         "id": admin_id,
@@ -798,138 +798,7 @@ async def seed_data():
     }
     await db.users.insert_one(admin_doc)
     
-    # Seed Posts
-    posts = [
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Welcome to the Love Revolution!",
-            "content": "Hey beautiful people! Welcome to our new platform. This is where we come together, share ideas, and build the future we want to see. Let's spread love, positivity, and make real change happen! 💖",
-            "image_url": "https://images.unsplash.com/photo-1682447450943-c5785c84d047?w=800",
-            "video_url": None,
-            "author_id": admin_id,
-            "author_name": "Paperboy Prince",
-            "created_at": now,
-            "updated_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Community Garden Project Launch",
-            "content": "We're transforming empty lots into community gardens! Join us this weekend as we break ground on our newest project in Brooklyn. Fresh food, fresh air, fresh vibes. Everyone is welcome!",
-            "image_url": "https://images.unsplash.com/photo-1728706613021-e447801e1ea6?w=800",
-            "video_url": None,
-            "author_id": admin_id,
-            "author_name": "Paperboy Prince",
-            "created_at": now,
-            "updated_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Art is Activism",
-            "content": "Every piece of art we create tells a story. Every mural we paint sends a message. Art isn't just decoration - it's revolution. Keep creating, keep expressing, keep fighting for what matters.",
-            "image_url": "https://images.unsplash.com/photo-1763168573987-5c3130015401?w=800",
-            "video_url": None,
-            "author_id": admin_id,
-            "author_name": "Paperboy Prince",
-            "created_at": now,
-            "updated_at": now
-        }
-    ]
-    await db.posts.insert_many(posts)
-    
-    # Seed Products
-    products = [
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Love Revolution Hoodie",
-            "description": "Spread the love everywhere you go with our signature pink hoodie. Made with organic cotton and printed with eco-friendly inks.",
-            "price": 65.00,
-            "image_url": "https://images.unsplash.com/photo-1630269470859-f950f36b54ce?w=800",
-            "available": False,
-            "created_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Paperboy Prince T-Shirt",
-            "description": "Classic tee featuring the iconic Paperboy Prince logo. Available in multiple colors. 100% organic cotton.",
-            "price": 35.00,
-            "image_url": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800",
-            "available": False,
-            "created_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Movement Cap",
-            "description": "Rep the movement with this embroidered cap. One size fits all, adjustable strap.",
-            "price": 28.00,
-            "image_url": "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800",
-            "available": False,
-            "created_at": now
-        }
-    ]
-    await db.products.insert_many(products)
-    
-    # Seed Events
-    events = [
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Community Town Hall",
-            "description": "Join us for our monthly town hall where we discuss local issues, share updates on our projects, and plan for the future. Everyone's voice matters!",
-            "date": "2025-02-15T18:00:00",
-            "location": "Brooklyn Community Center, 123 Main St",
-            "image_url": "https://images.unsplash.com/photo-1759605034474-b143695762c5?w=800",
-            "created_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Street Art Festival",
-            "description": "A celebration of street art and culture! Live performances, murals being painted, food vendors, and good vibes all around.",
-            "date": "2025-03-01T12:00:00",
-            "location": "Bushwick Open Studios, Brooklyn",
-            "image_url": "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800",
-            "created_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Youth Leadership Workshop",
-            "description": "Empowering the next generation of leaders. This workshop covers public speaking, community organizing, and how to make your voice heard.",
-            "date": "2025-02-22T14:00:00",
-            "location": "The People's House, 456 Unity Ave",
-            "image_url": "https://images.unsplash.com/photo-1529390079861-591de354faf5?w=800",
-            "created_at": now
-        }
-    ]
-    await db.events.insert_many(events)
-    
-    # Seed Actions
-    actions = [
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Volunteer: Community Clean-Up",
-            "description": "Help us keep our neighborhoods beautiful! Sign up to volunteer for our weekly community clean-up events. All supplies provided.",
-            "action_type": "volunteer",
-            "image_url": "https://images.unsplash.com/photo-1618477462146-050d2767ebd4?w=800",
-            "created_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Petition: Fund Youth Programs",
-            "description": "Sign our petition to increase funding for youth arts and education programs in our community. Every signature counts!",
-            "action_type": "petition",
-            "image_url": "https://images.unsplash.com/photo-1577896851231-70ef18881754?w=800",
-            "created_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "title": "Pledge: Spread Love Daily",
-            "description": "Take the pledge to perform one act of kindness every day. Small actions create big change. Join the love revolution!",
-            "action_type": "pledge",
-            "image_url": "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=800",
-            "created_at": now
-        }
-    ]
-    await db.actions.insert_many(actions)
-    
-    return {"message": "Demo data seeded successfully", "admin_email": "admin@paperboyprince.com", "admin_password": "admin123"}
+    return {"message": "Admin user created", "admin_email": "admin@paperboyprince.com"}
 
 # Include router and middleware
 app.include_router(api_router)
