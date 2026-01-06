@@ -10,16 +10,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { Menu, X, User, LogOut, Settings, ShoppingCart, Heart } from 'lucide-react';
+import { Menu, User, LogOut, Settings, Heart } from 'lucide-react';
 
 const navLinks = [
-  { path: '/', label: 'HOME' },
-  { path: '/about', label: 'ABOUT' },
-  { path: '/films', label: 'FILMS' },
-  { path: '/music', label: 'MUSIC' },
-  { path: '/events', label: 'EVENTS' },
-  { path: '/action', label: 'ACTION' },
-  { path: '/shop', label: 'SHOP' },
+  { path: '/', label: 'HOME', external: false },
+  { path: '/about', label: 'ABOUT', external: false },
+  { path: '/films', label: 'FILMS', external: false },
+  { path: '/music', label: 'MUSIC', external: false },
+  { path: '/events', label: 'EVENTS', external: false },
+  { path: '/action', label: 'ACTION', external: false },
+  { path: 'https://paperboyprince.shop', label: 'SHOP', external: true },
 ];
 
 const Layout = () => {
@@ -39,9 +39,13 @@ const Layout = () => {
       <nav className="sticky top-4 z-50 mx-4 rounded-full border-2 border-black bg-white/95 backdrop-blur-md shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] px-4 md:px-6 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2" data-testid="logo-link">
-            <div className="w-10 h-10 bg-pp-magenta rounded-full flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white fill-white" />
+          <Link to="/" className="flex items-center gap-3" data-testid="logo-link">
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-pp-magenta">
+              <img 
+                src="https://customer-assets.emergentagent.com/job_prince-engage/artifacts/hk4rzvx8_PaperboyPrince_PrimaryLogo-06.png"
+                alt="Paperboy Prince Logo"
+                className="w-8 h-8 object-contain"
+              />
             </div>
             <span className="font-campaign text-xl tracking-wider hidden sm:block">PAPERBOY PRINCE</span>
           </Link>
