@@ -934,10 +934,110 @@ async def get_admin_stats(user: dict = Depends(get_admin_user)):
         "notify_subscribers": notify_count
     }
 
-@api_router.get("/admin/users", response_model=List[UserResponse])
-async def get_all_users(user: dict = Depends(get_admin_user)):
-    users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(1000)
+@api_router.get("/admin/users")
+async def get_all_users(
+    user: dict = Depends(get_admin_user),
+    search: Optional[str] = None,
+    sort_by: Optional[str] = "created_at",
+    sort_order: Optional[str] = "desc"
+):
+    """Get all users with search and sorting (admin only)"""
+    query = {}
+    if search:
+        query["email"] = {"$regex": search, "$options": "i"}
+    
+    sort_direction = -1 if sort_order == "desc" else 1
+    valid_sort_fields = ["email", "name", "created_at", "last_login_at", "is_admin"]
+    if sort_by not in valid_sort_fields:
+        sort_by = "created_at"
+    
+    users = await db.users.find(query, {"_id": 0, "password_hash": 0}).sort(sort_by, sort_direction).to_list(1000)
+    
+    # Add status field to each user
+    for u in users:
+        u["status"] = "active"  # Could be extended to track suspended/inactive users
+        if "last_login_at" not in u:
+            u["last_login_at"] = None
+    
     return users
+
+@api_router.post("/admin/users/{user_id}/reset-password")
+async def admin_reset_user_password(user_id: str, admin: dict = Depends(get_admin_user), request: Request = None):
+    """Generate a password reset link for a user (admin only)"""
+    # Rate limit
+    if not check_rate_limit(f"admin_reset:{admin['id']}"):
+        await create_audit_log(
+            action="password_reset_request",
+            admin_id=admin["id"],
+            admin_email=admin["email"],
+            target_user_id=user_id,
+            details="Rate limited",
+            outcome="blocked"
+        )
+        raise HTTPException(status_code=429, detail="Too many reset requests. Please wait before trying again.")
+    
+    # Find target user
+    target_user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Generate reset token
+    plain_token, hashed_token = generate_reset_token()
+    expiry = datetime.now(timezone.utc) + timedelta(minutes=RESET_TOKEN_EXPIRY_MINUTES)
+    
+    # Delete any existing reset tokens for this user
+    await db.password_resets.delete_many({"user_id": user_id})
+    
+    # Store hashed token
+    reset_doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "user_email": target_user["email"],
+        "token_hash": hashed_token,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "expires_at": expiry.isoformat(),
+        "created_by_admin_id": admin["id"],
+        "created_by_admin_email": admin["email"],
+        "used": False
+    }
+    await db.password_resets.insert_one(reset_doc)
+    
+    # Create audit log
+    await create_audit_log(
+        action="password_reset_request",
+        admin_id=admin["id"],
+        admin_email=admin["email"],
+        target_user_id=user_id,
+        target_email=target_user["email"],
+        details=f"Reset link generated, expires at {expiry.isoformat()}",
+        outcome="success"
+    )
+    
+    # Since email is not configured, return the reset link
+    # In production, you would send this via email instead
+    reset_link = f"/reset-password?token={plain_token}"
+    
+    return {
+        "message": "Password reset link generated",
+        "reset_link": reset_link,
+        "expires_at": expiry.isoformat(),
+        "user_email": target_user["email"],
+        "note": "Email sending not configured. Share this one-time link securely with the user."
+    }
+
+@api_router.get("/admin/audit-logs")
+async def get_audit_logs(
+    admin: dict = Depends(get_admin_user),
+    action: Optional[str] = None,
+    limit: int = 100
+):
+    """Get audit logs (admin only)"""
+    query = {}
+    if action:
+        query["action"] = action
+    
+    logs = await db.audit_logs.find(query, {"_id": 0}).sort("timestamp", -1).limit(limit).to_list(limit)
+    return logs
 
 @api_router.put("/admin/users/{user_id}")
 async def update_user_admin(user_id: str, user_data: UserUpdate, admin: dict = Depends(get_admin_user)):
