@@ -141,7 +141,8 @@ export const authAPI = {
 
 // Posts
 export const postsAPI = {
-  getAll: () => api.get('/posts'),
+  getAll: (params = {}) => api.get('/posts', { params }),
+  getLatest: (limit = 6) => api.get(`/posts/latest?limit=${limit}`),
   getPending: () => api.get('/posts/pending'),
   getMyPosts: () => api.get('/posts/my'),
   getOne: (id) => api.get(`/posts/${id}`),
@@ -149,6 +150,13 @@ export const postsAPI = {
   update: (id, data) => api.put(`/posts/${id}`, data),
   delete: (id) => api.delete(`/posts/${id}`),
   moderate: (id, action, rejectionReason = null) => api.post(`/posts/${id}/moderate`, { action, rejection_reason: rejectionReason }),
+};
+
+// Comments
+export const commentsAPI = {
+  getForPost: (postId) => api.get(`/posts/${postId}/comments`),
+  create: (postId, body) => api.post(`/posts/${postId}/comments`, { body }),
+  delete: (commentId) => api.delete(`/comments/${commentId}`),
 };
 
 // Products
