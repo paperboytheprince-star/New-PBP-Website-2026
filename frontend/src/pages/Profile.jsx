@@ -107,8 +107,21 @@ const Profile = () => {
     }
   };
 
-  const myEvents = events.filter(e => myRsvps.includes(e.id));
-  const myActions = actions.filter(a => mySignups.includes(a.id));
+  const myEventsFiltered = events.filter(e => myRsvps.includes(e.id));
+  const myActionsFiltered = actions.filter(a => mySignups.includes(a.id));
+  
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'approved':
+        return <Badge className="bg-green-500 text-white"><Check className="w-3 h-3 mr-1" />Approved</Badge>;
+      case 'pending':
+        return <Badge className="bg-orange-500 text-white"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-500 text-white"><X className="w-3 h-3 mr-1" />Rejected</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
 
   if (!isAuthenticated) {
     return null;
@@ -153,31 +166,210 @@ const Profile = () => {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* My RSVPs */}
-        <Card className="rounded-3xl border-2 border-black">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-campaign text-2xl tracking-wider">
-              <Calendar className="w-6 h-6 text-pp-magenta" />
-              MY RSVPS
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(2)].map((_, i) => (
-                  <Skeleton key={i} className="h-20 w-full rounded-xl" />
-                ))}
-              </div>
-            ) : myEvents.length === 0 ? (
-              <div className="text-center py-8">
-                <Calendar className="w-12 h-12 text-pp-pink mx-auto mb-3" />
-                <p className="font-primary text-muted-foreground">No RSVPs yet</p>
-                <Link to="/events">
-                  <Button variant="link" className="text-pp-magenta mt-2">
-                    Browse Events
-                  </Button>
-                </Link>
+      {/* Tabs for Activity and Submissions */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+        <TabsList className="mb-6">
+          <TabsTrigger value="activity" className="font-campaign">MY ACTIVITY</TabsTrigger>
+          <TabsTrigger value="submissions" className="font-campaign">MY SUBMISSIONS</TabsTrigger>
+          <TabsTrigger value="settings" className="font-campaign">SETTINGS</TabsTrigger>
+        </TabsList>
+        
+        {/* Activity Tab */}
+        <TabsContent value="activity">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* My RSVPs */}
+            <Card className="rounded-3xl border-2 border-black">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-campaign text-2xl tracking-wider">
+                  <Calendar className="w-6 h-6 text-pp-magenta" />
+                  MY RSVPS
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-4">
+                    {[...Array(2)].map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                    ))}
+                  </div>
+                ) : myEventsFiltered.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Calendar className="w-12 h-12 text-pp-pink mx-auto mb-3" />
+                    <p className="font-primary text-muted-foreground">No RSVPs yet</p>
+                    <Link to="/events">
+                      <Button variant="link" className="text-pp-magenta mt-2">
+                        Browse Events
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {myEventsFiltered.map(event => (
+                      <div key={event.id} className="p-4 rounded-xl border-2 border-gray-200 flex justify-between items-center">
+                        <div>
+                          <h4 className="font-primary font-semibold">{event.title}</h4>
+                          <p className="text-sm text-muted-foreground font-primary">
+                            {format(parseISO(event.date), 'MMM d, yyyy')}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => cancelRsvp(event.id)}
+                        >
+                          <X className="w-4 h-4 mr-1" />
+                          Cancel
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* My Action Signups */}
+            <Card className="rounded-3xl border-2 border-black">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-campaign text-2xl tracking-wider">
+                  <Megaphone className="w-6 h-6 text-pp-magenta" />
+                  MY ACTIONS
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-4">
+                    {[...Array(2)].map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                    ))}
+                  </div>
+                ) : myActionsFiltered.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Megaphone className="w-12 h-12 text-pp-pink mx-auto mb-3" />
+                    <p className="font-primary text-muted-foreground">No action signups yet</p>
+                    <Link to="/action">
+                      <Button variant="link" className="text-pp-magenta mt-2">
+                        Browse Actions
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {myActionsFiltered.map(action => (
+                      <div key={action.id} className="p-4 rounded-xl border-2 border-gray-200 flex justify-between items-center">
+                        <div>
+                          <h4 className="font-primary font-semibold">{action.title}</h4>
+                          <Badge variant="outline" className="text-xs mt-1">{action.action_type}</Badge>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => cancelSignup(action.id)}
+                        >
+                          <X className="w-4 h-4 mr-1" />
+                          Leave
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        {/* Submissions Tab */}
+        <TabsContent value="submissions">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* My Posts */}
+            <Card className="rounded-3xl border-2 border-black">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-campaign text-2xl tracking-wider">
+                  <FileText className="w-6 h-6 text-pp-magenta" />
+                  MY POSTS
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-4">
+                    {[...Array(2)].map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                    ))}
+                  </div>
+                ) : myPosts.length === 0 ? (
+                  <div className="text-center py-8">
+                    <FileText className="w-12 h-12 text-pp-pink mx-auto mb-3" />
+                    <p className="font-primary text-muted-foreground">No posts yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {myPosts.map(post => (
+                      <div key={post.id} className="p-4 rounded-xl border-2 border-gray-200">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-primary font-semibold">{post.title}</h4>
+                          {getStatusBadge(post.status)}
+                        </div>
+                        <p className="text-sm text-muted-foreground font-primary line-clamp-2">{post.content}</p>
+                        {post.status === 'rejected' && post.rejection_reason && (
+                          <div className="mt-2 p-2 bg-red-50 rounded-lg text-sm text-red-600 flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <span>{post.rejection_reason}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* My Submitted Actions */}
+            <Card className="rounded-3xl border-2 border-black">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-campaign text-2xl tracking-wider">
+                  <Megaphone className="w-6 h-6 text-pp-magenta" />
+                  MY SUBMITTED ACTIONS
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-4">
+                    {[...Array(2)].map((_, i) => (
+                      <Skeleton key={i} className="h-20 w-full rounded-xl" />
+                    ))}
+                  </div>
+                ) : myActions.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Megaphone className="w-12 h-12 text-pp-pink mx-auto mb-3" />
+                    <p className="font-primary text-muted-foreground">No submitted actions yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {myActions.map(action => (
+                      <div key={action.id} className="p-4 rounded-xl border-2 border-gray-200">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-primary font-semibold">{action.title}</h4>
+                          {getStatusBadge(action.status)}
+                        </div>
+                        <p className="text-sm text-muted-foreground font-primary line-clamp-2">{action.description}</p>
+                        {action.status === 'rejected' && action.rejection_reason && (
+                          <div className="mt-2 p-2 bg-red-50 rounded-lg text-sm text-red-600 flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                            <span>{action.rejection_reason}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        {/* Settings Tab */}
+        <TabsContent value="settings">
               </div>
             ) : (
               <div className="space-y-4">
