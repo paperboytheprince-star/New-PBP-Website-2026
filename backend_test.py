@@ -548,7 +548,403 @@ class ModerationWorkflowTester:
             self.log_result("Unread Notification Count", False, "Invalid unread count response")
             return False
 
-    # ============ HEALTH CHECK TESTS ============
+    # ============ POSTS EXPERIENCE TESTS ============
+
+    def test_get_posts_pagination(self):
+        """Test GET /api/posts with pagination"""
+        print("\n📄 Testing Posts Pagination...")
+        
+        # Test with page=1, limit=3
+        data, error = self.make_request('GET', 'posts?page=1&limit=3', expected_status=200, token=None)
+        
+        if error:
+            self.log_result("Posts Pagination", False, error)
+            return False
+            
+        if (data and 'posts' in data and 'total' in data and 'page' in data and 
+            'limit' in data and 'total_pages' in data):
+            posts = data['posts']
+            if len(posts) <= 3 and data['page'] == 1 and data['limit'] == 3:
+                # Store existing post IDs for later tests
+                self.existing_post_ids = [post['id'] for post in posts if post.get('status') == 'approved']
+                self.log_result("Posts Pagination", True, f"Retrieved {len(posts)} posts with pagination")
+                return True
+            else:
+                self.log_result("Posts Pagination", False, f"Pagination parameters incorrect: {data}")
+                return False
+        else:
+            self.log_result("Posts Pagination", False, "Missing pagination fields in response")
+            return False
+
+    def test_get_posts_search(self):
+        """Test GET /api/posts with search functionality"""
+        print("\n🔍 Testing Posts Search...")
+        
+        # Test search for "City" (case insensitive)
+        data, error = self.make_request('GET', 'posts?search=City', expected_status=200, token=None)
+        
+        if error:
+            self.log_result("Posts Search", False, error)
+            return False
+            
+        if data and 'posts' in data:
+            posts = data['posts']
+            # Check if search is working (posts should contain "City" in title or content)
+            search_working = True
+            for post in posts:
+                title = post.get('title', '').lower()
+                content = post.get('content', '').lower()
+                if 'city' not in title and 'city' not in content:
+                    search_working = False
+                    break
+            
+            if search_working or len(posts) == 0:  # Empty result is also valid
+                self.log_result("Posts Search", True, f"Search returned {len(posts)} posts")
+                return True
+            else:
+                self.log_result("Posts Search", False, "Search results don't match search term")
+                return False
+        else:
+            self.log_result("Posts Search", False, "Invalid search response")
+            return False
+
+    def test_get_posts_sort(self):
+        """Test GET /api/posts with sort functionality"""
+        print("\n📊 Testing Posts Sort...")
+        
+        # Test newest sort
+        data_newest, error = self.make_request('GET', 'posts?sort=newest', expected_status=200, token=None)
+        
+        if error:
+            self.log_result("Posts Sort", False, f"Newest sort error: {error}")
+            return False
+            
+        # Test oldest sort
+        data_oldest, error = self.make_request('GET', 'posts?sort=oldest', expected_status=200, token=None)
+        
+        if error:
+            self.log_result("Posts Sort", False, f"Oldest sort error: {error}")
+            return False
+            
+        if (data_newest and 'posts' in data_newest and 
+            data_oldest and 'posts' in data_oldest):
+            
+            newest_posts = data_newest['posts']
+            oldest_posts = data_oldest['posts']
+            
+            # Check if we have posts to compare
+            if len(newest_posts) >= 2 and len(oldest_posts) >= 2:
+                # Compare first post dates (newest should be more recent)
+                newest_first_date = newest_posts[0].get('created_at', '')
+                oldest_first_date = oldest_posts[0].get('created_at', '')
+                
+                if newest_first_date >= oldest_first_date:
+                    self.log_result("Posts Sort", True, "Sort functionality working")
+                    return True
+                else:
+                    self.log_result("Posts Sort", False, "Sort order incorrect")
+                    return False
+            else:
+                self.log_result("Posts Sort", True, "Sort endpoints working (insufficient data to verify order)")
+                return True
+        else:
+            self.log_result("Posts Sort", False, "Invalid sort response")
+            return False
+
+    def test_get_latest_posts(self):
+        """Test GET /api/posts/latest"""
+        print("\n⭐ Testing Latest Posts...")
+        
+        data, error = self.make_request('GET', 'posts/latest', expected_status=200, token=None)
+        
+        if error:
+            self.log_result("Latest Posts", False, error)
+            return False
+            
+        if isinstance(data, list):
+            # Check that all posts have comment_count and are approved
+            all_valid = True
+            for post in data:
+                if ('comment_count' not in post or 
+                    post.get('status') != 'approved'):
+                    all_valid = False
+                    break
+            
+            if all_valid:
+                self.log_result("Latest Posts", True, f"Retrieved {len(data)} latest posts with comment counts")
+                return True
+            else:
+                self.log_result("Latest Posts", False, "Posts missing comment_count or not approved")
+                return False
+        else:
+            self.log_result("Latest Posts", False, "Expected array of posts")
+            return False
+
+    def test_get_single_post(self):
+        """Test GET /api/posts/{post_id}"""
+        print("\n📖 Testing Single Post Retrieval...")
+        
+        if not self.existing_post_ids:
+            self.log_result("Single Post Retrieval", False, "No existing post IDs available")
+            return False
+            
+        post_id = self.existing_post_ids[0]
+        data, error = self.make_request('GET', f'posts/{post_id}', expected_status=200, token=None)
+        
+        if error:
+            self.log_result("Single Post Retrieval", False, error)
+            return False
+            
+        if (data and 'id' in data and 'comment_count' in data and 
+            data['id'] == post_id):
+            self.log_result("Single Post Retrieval", True, f"Retrieved post with comment_count: {data['comment_count']}")
+            return True
+        else:
+            self.log_result("Single Post Retrieval", False, "Post missing required fields")
+            return False
+
+    def test_get_post_comments(self):
+        """Test GET /api/posts/{post_id}/comments"""
+        print("\n💬 Testing Post Comments Retrieval...")
+        
+        if not self.existing_post_ids:
+            self.log_result("Post Comments Retrieval", False, "No existing post IDs available")
+            return False
+            
+        post_id = self.existing_post_ids[0]
+        data, error = self.make_request('GET', f'posts/{post_id}/comments', expected_status=200, token=None)
+        
+        if error:
+            self.log_result("Post Comments Retrieval", False, error)
+            return False
+            
+        if isinstance(data, list):
+            # Check that all comments have required fields
+            all_valid = True
+            for comment in data:
+                if ('id' not in comment or 'author_name' not in comment or 
+                    'body' not in comment or 'created_at' not in comment):
+                    all_valid = False
+                    break
+            
+            if all_valid:
+                self.log_result("Post Comments Retrieval", True, f"Retrieved {len(data)} comments")
+                return True
+            else:
+                self.log_result("Post Comments Retrieval", False, "Comments missing required fields")
+                return False
+        else:
+            self.log_result("Post Comments Retrieval", False, "Expected array of comments")
+            return False
+
+    def test_create_comment_auth_required(self):
+        """Test POST /api/posts/{post_id}/comments (auth required)"""
+        print("\n✍️ Testing Comment Creation (Auth Required)...")
+        
+        if not self.existing_post_ids:
+            self.log_result("Comment Creation Auth", False, "No existing post IDs available")
+            return False
+            
+        if not self.user_token:
+            self.log_result("Comment Creation Auth", False, "No user token available")
+            return False
+            
+        post_id = self.existing_post_ids[0]
+        comment_data = {
+            "body": "This is a test comment for the posts experience feature testing."
+        }
+        
+        data, error = self.make_request('POST', f'posts/{post_id}/comments', comment_data, 
+                                      expected_status=200, token=self.user_token)
+        
+        if error:
+            self.log_result("Comment Creation Auth", False, error)
+            return False
+            
+        if (data and 'id' in data and 'body' in data and 
+            data['body'] == comment_data['body']):
+            self.test_comment_id = data['id']
+            self.log_result("Comment Creation Auth", True, f"Comment created: {self.test_comment_id}")
+            return True
+        else:
+            self.log_result("Comment Creation Auth", False, "Invalid comment creation response")
+            return False
+
+    def test_comment_rate_limiting(self):
+        """Test comment rate limiting (15 second limit)"""
+        print("\n⏱️ Testing Comment Rate Limiting...")
+        
+        if not self.existing_post_ids or not self.user_token:
+            self.log_result("Comment Rate Limiting", False, "Missing post ID or user token")
+            return False
+            
+        post_id = self.existing_post_ids[0]
+        comment_data = {
+            "body": "This comment should be rate limited."
+        }
+        
+        # Try to create another comment immediately (should be rate limited)
+        data, error = self.make_request('POST', f'posts/{post_id}/comments', comment_data, 
+                                      expected_status=429, token=self.user_token)
+        
+        if error and "429" in str(error):
+            self.log_result("Comment Rate Limiting", True, "Rate limiting working correctly")
+            return True
+        elif data and data.get('status_code') == 429:
+            self.log_result("Comment Rate Limiting", True, "Rate limiting working correctly")
+            return True
+        else:
+            self.log_result("Comment Rate Limiting", False, f"Expected 429 rate limit error, got: {error or data}")
+            return False
+
+    def test_delete_comment_admin(self):
+        """Test DELETE /api/comments/{comment_id} - Admin can delete"""
+        print("\n🗑️ Testing Comment Deletion (Admin)...")
+        
+        if not self.test_comment_id or not self.admin_token:
+            self.log_result("Comment Deletion Admin", False, "Missing comment ID or admin token")
+            return False
+            
+        data, error = self.make_request('DELETE', f'comments/{self.test_comment_id}', 
+                                      expected_status=200, token=self.admin_token)
+        
+        if error:
+            self.log_result("Comment Deletion Admin", False, error)
+            return False
+            
+        if data and data.get('message') == "Comment deleted":
+            self.log_result("Comment Deletion Admin", True, "Admin successfully deleted comment")
+            # Reset comment ID since it's deleted
+            self.test_comment_id = None
+            return True
+        else:
+            self.log_result("Comment Deletion Admin", False, "Unexpected deletion response")
+            return False
+
+    def test_delete_comment_author(self):
+        """Test DELETE /api/comments/{comment_id} - Author can delete their own comment"""
+        print("\n✂️ Testing Comment Deletion (Author)...")
+        
+        if not self.existing_post_ids or not self.user_token:
+            self.log_result("Comment Deletion Author", False, "Missing post ID or user token")
+            return False
+            
+        # First create a new comment
+        post_id = self.existing_post_ids[0]
+        comment_data = {
+            "body": "This comment will be deleted by its author."
+        }
+        
+        # Wait a bit to avoid rate limiting
+        import time
+        time.sleep(16)  # Wait for rate limit to reset
+        
+        data, error = self.make_request('POST', f'posts/{post_id}/comments', comment_data, 
+                                      expected_status=200, token=self.user_token)
+        
+        if error:
+            self.log_result("Comment Deletion Author", False, f"Failed to create comment: {error}")
+            return False
+            
+        if not data or 'id' not in data:
+            self.log_result("Comment Deletion Author", False, "No comment ID in creation response")
+            return False
+            
+        comment_id = data['id']
+        
+        # Now delete it as the author
+        data, error = self.make_request('DELETE', f'comments/{comment_id}', 
+                                      expected_status=200, token=self.user_token)
+        
+        if error:
+            self.log_result("Comment Deletion Author", False, error)
+            return False
+            
+        if data and data.get('message') == "Comment deleted":
+            self.log_result("Comment Deletion Author", True, "Author successfully deleted own comment")
+            return True
+        else:
+            self.log_result("Comment Deletion Author", False, "Unexpected deletion response")
+            return False
+
+    def test_delete_comment_unauthorized(self):
+        """Test DELETE /api/comments/{comment_id} - Non-author/non-admin cannot delete"""
+        print("\n🚫 Testing Comment Deletion (Unauthorized)...")
+        
+        if not self.existing_post_ids or not self.admin_token:
+            self.log_result("Comment Deletion Unauthorized", False, "Missing post ID or admin token")
+            return False
+            
+        # Create a comment as admin first
+        post_id = self.existing_post_ids[0]
+        comment_data = {
+            "body": "This comment will test unauthorized deletion."
+        }
+        
+        data, error = self.make_request('POST', f'posts/{post_id}/comments', comment_data, 
+                                      expected_status=200, token=self.admin_token)
+        
+        if error or not data or 'id' not in data:
+            self.log_result("Comment Deletion Unauthorized", False, f"Failed to create test comment: {error}")
+            return False
+            
+        comment_id = data['id']
+        
+        # Try to delete it as regular user (should fail)
+        if not self.user_token:
+            self.log_result("Comment Deletion Unauthorized", False, "No user token available")
+            return False
+            
+        data, error = self.make_request('DELETE', f'comments/{comment_id}', 
+                                      expected_status=403, token=self.user_token)
+        
+        if error and "403" in str(error):
+            self.log_result("Comment Deletion Unauthorized", True, "Unauthorized deletion correctly blocked")
+            # Clean up the comment as admin
+            self.make_request('DELETE', f'comments/{comment_id}', token=self.admin_token)
+            return True
+        elif data and data.get('status_code') == 403:
+            self.log_result("Comment Deletion Unauthorized", True, "Unauthorized deletion correctly blocked")
+            # Clean up the comment as admin
+            self.make_request('DELETE', f'comments/{comment_id}', token=self.admin_token)
+            return True
+        else:
+            self.log_result("Comment Deletion Unauthorized", False, f"Expected 403 error, got: {error or data}")
+            # Clean up the comment as admin
+            self.make_request('DELETE', f'comments/{comment_id}', token=self.admin_token)
+            return False
+
+    def test_posts_experience_comprehensive(self):
+        """Run comprehensive Posts Experience tests"""
+        print("\n🎯 POSTS EXPERIENCE COMPREHENSIVE TESTING")
+        print("=" * 60)
+        
+        posts_tests = [
+            ("Posts Pagination", self.test_get_posts_pagination),
+            ("Posts Search", self.test_get_posts_search),
+            ("Posts Sort", self.test_get_posts_sort),
+            ("Latest Posts", self.test_get_latest_posts),
+            ("Single Post Retrieval", self.test_get_single_post),
+            ("Post Comments Retrieval", self.test_get_post_comments),
+            ("Comment Creation Auth", self.test_create_comment_auth_required),
+            ("Comment Rate Limiting", self.test_comment_rate_limiting),
+            ("Comment Deletion Admin", self.test_delete_comment_admin),
+            ("Comment Deletion Author", self.test_delete_comment_author),
+            ("Comment Deletion Unauthorized", self.test_delete_comment_unauthorized),
+        ]
+        
+        posts_passed = 0
+        posts_total = len(posts_tests)
+        
+        for test_name, test_func in posts_tests:
+            try:
+                if test_func():
+                    posts_passed += 1
+            except Exception as e:
+                self.log_result(test_name, False, f"Exception: {str(e)}")
+        
+        print(f"\n📊 POSTS EXPERIENCE RESULTS: {posts_passed}/{posts_total} tests passed")
+        return posts_passed == posts_total
 
     def test_health_check(self):
         """Test health check endpoint"""
