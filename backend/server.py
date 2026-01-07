@@ -1173,6 +1173,135 @@ async def unsubscribe_notify(email: str, user: dict = Depends(get_admin_user)):
         raise HTTPException(status_code=404, detail="Email not found")
     return {"message": "Unsubscribed successfully"}
 
+# ============ PROFILE ROUTES ============
+
+@api_router.get("/profile/{user_id}", response_model=ProfileResponse)
+async def get_user_profile(user_id: str):
+    """Get a user's profile (public)"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    profile = await db.profiles.find_one({"user_id": user_id}, {"_id": 0})
+    
+    return {
+        "user_id": user["id"],
+        "email": user["email"],
+        "display_name": profile.get("display_name") if profile else user.get("name"),
+        "username": profile.get("username") if profile else None,
+        "bio": profile.get("bio") if profile else None,
+        "avatar_url": profile.get("avatar_url") if profile else None,
+        "is_admin": user.get("is_admin", False),
+        "created_at": user["created_at"],
+        "updated_at": profile.get("updated_at") if profile else None
+    }
+
+@api_router.get("/profile", response_model=ProfileResponse)
+async def get_my_profile(user: dict = Depends(get_current_user)):
+    """Get current user's profile"""
+    return await get_user_profile(user["id"])
+
+@api_router.put("/profile", response_model=ProfileResponse)
+async def update_my_profile(profile_data: ProfileUpdate, user: dict = Depends(get_current_user)):
+    """Update current user's profile"""
+    now = datetime.now(timezone.utc).isoformat()
+    
+    profile = await db.profiles.find_one({"user_id": user["id"]})
+    
+    update_data = {k: v for k, v in profile_data.model_dump().items() if v is not None}
+    update_data["updated_at"] = now
+    
+    if profile:
+        await db.profiles.update_one({"user_id": user["id"]}, {"$set": update_data})
+    else:
+        update_data["user_id"] = user["id"]
+        await db.profiles.insert_one(update_data)
+    
+    return await get_user_profile(user["id"])
+
+# ============ NOTIFICATION ROUTES ============
+
+@api_router.get("/notifications")
+async def get_my_notifications(user: dict = Depends(get_admin_user)):
+    """Get notifications for admin user"""
+    notifications = await db.notifications.find(
+        {"recipient_admin_id": user["id"]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    return notifications
+
+@api_router.get("/notifications/unread-count")
+async def get_unread_notification_count(user: dict = Depends(get_admin_user)):
+    """Get count of unread notifications"""
+    count = await db.notifications.count_documents({
+        "recipient_admin_id": user["id"],
+        "read_at": None
+    })
+    return {"unread_count": count}
+
+@api_router.post("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, user: dict = Depends(get_admin_user)):
+    """Mark a notification as read"""
+    now = datetime.now(timezone.utc).isoformat()
+    result = await db.notifications.update_one(
+        {"id": notification_id, "recipient_admin_id": user["id"]},
+        {"$set": {"read_at": now}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"message": "Notification marked as read"}
+
+@api_router.post("/notifications/read-all")
+async def mark_all_notifications_read(user: dict = Depends(get_admin_user)):
+    """Mark all notifications as read"""
+    now = datetime.now(timezone.utc).isoformat()
+    await db.notifications.update_many(
+        {"recipient_admin_id": user["id"], "read_at": None},
+        {"$set": {"read_at": now}}
+    )
+    return {"message": "All notifications marked as read"}
+
+# ============ HEALTH CHECK ============
+
+@api_router.get("/health")
+async def health_check():
+    """Health check endpoint - returns API and database status"""
+    try:
+        # Check database connectivity
+        await db.command("ping")
+        db_status = "ok"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+    
+    return {
+        "api": "ok",
+        "database": db_status,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+
+@api_router.get("/debug/auth-status")
+async def get_auth_status(user: dict = Depends(get_admin_user)):
+    """Debug endpoint for auth status (admin only)"""
+    # Get pending counts
+    pending_posts = await db.posts.count_documents({"status": "pending"})
+    pending_actions = await db.actions.count_documents({"status": "pending"})
+    unread_notifications = await db.notifications.count_documents({
+        "recipient_admin_id": user["id"],
+        "read_at": None
+    })
+    
+    return {
+        "user_id": user["id"],
+        "email": user["email"],
+        "role": "admin" if user.get("is_admin") else "user",
+        "pending_posts": pending_posts,
+        "pending_actions": pending_actions,
+        "unread_notifications": unread_notifications,
+        "api_health": "ok",
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    }
+    return {"message": "Unsubscribed successfully"}
+
 # ============ ADMIN STATS ============
 
 @api_router.get("/admin/stats")
