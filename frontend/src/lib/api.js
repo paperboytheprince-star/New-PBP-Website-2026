@@ -49,10 +49,13 @@ export const authAPI = {
 // Posts
 export const postsAPI = {
   getAll: () => api.get('/posts'),
+  getPending: () => api.get('/posts/pending'),
+  getMyPosts: () => api.get('/posts/my'),
   getOne: (id) => api.get(`/posts/${id}`),
   create: (data) => api.post('/posts', data),
   update: (id, data) => api.put(`/posts/${id}`, data),
   delete: (id) => api.delete(`/posts/${id}`),
+  moderate: (id, action, rejectionReason = null) => api.post(`/posts/${id}/moderate`, { action, rejection_reason: rejectionReason }),
 };
 
 // Products
