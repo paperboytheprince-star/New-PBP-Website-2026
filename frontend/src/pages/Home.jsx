@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { postsAPI } from '../lib/api';
+import { postsAPI, apiWithRetry, getErrorMessage } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Skeleton } from '../components/ui/skeleton';
-import { ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign, FileText } from 'lucide-react';
+import { ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign, FileText, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const heroImages = [
@@ -27,12 +28,24 @@ const Home = () => {
   }, []);
 
   const loadData = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const response = await postsAPI.getAll();
+      // Use retry logic for transient network failures
+      const response = await apiWithRetry(() => postsAPI.getAll());
       setPosts(response.data);
-    } catch (error) {
-      console.error('Error loading posts:', error);
-      toast.error('Failed to load posts');
+    } catch (err) {
+      console.error('Error loading posts:', err);
+      const errorMsg = getErrorMessage(err);
+      setError({
+        message: errorMsg,
+        status: err.apiStatus || 0,
+        isRetryable: err.isNetworkError || err.isServerError,
+      });
+      // Only show toast for actual errors, not empty results
+      if (err.apiStatus !== 200) {
+        toast.error(errorMsg);
+      }
     } finally {
       setLoading(false);
     }
