@@ -275,6 +275,18 @@ const Home = () => {
             )}
           </div>
         )}
+
+        {/* View All Posts Button - Mobile and Desktop */}
+        {posts.length > 0 && !loading && (
+          <div className="text-center mt-8">
+            <Link to="/posts">
+              <Button className="rounded-full bg-pp-magenta text-white font-bold px-8 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black">
+                View All Posts
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* CTA Section */}
