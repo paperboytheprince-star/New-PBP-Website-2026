@@ -526,13 +526,80 @@ const AdminDashboard = () => {
                         />
                       </div>
                       <div>
-                        <Label className="font-primary font-semibold">Image URL</Label>
-                        <Input
-                          value={postForm.image_url}
-                          onChange={(e) => setPostForm({ ...postForm, image_url: e.target.value })}
-                          className="border-2 border-black rounded-xl mt-1"
-                          data-testid="post-image-input"
-                        />
+                        <Label className="font-primary font-semibold">Post Image</Label>
+                        <div className="mt-2 space-y-3">
+                          {/* Image preview */}
+                          {(imagePreview || postForm.image_url) && (
+                            <div className="relative inline-block">
+                              <img 
+                                src={imagePreview || postForm.image_url} 
+                                alt="Preview" 
+                                className="max-h-40 rounded-xl border-2 border-gray-200"
+                              />
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                                onClick={clearImage}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
+                          
+                          {/* Upload button */}
+                          <div className="flex items-center gap-3">
+                            <input
+                              ref={fileInputRef}
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              onChange={handleImageUpload}
+                              className="hidden"
+                              id="post-image-upload"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={uploadingImage}
+                              className="rounded-full border-2 border-black"
+                            >
+                              {uploadingImage ? (
+                                <>Uploading...</>
+                              ) : (
+                                <>
+                                  <Upload className="w-4 h-4 mr-2" />
+                                  Upload Image
+                                </>
+                              )}
+                            </Button>
+                            <span className="text-xs text-muted-foreground">
+                              JPG, PNG, WebP • Max 5MB
+                            </span>
+                          </div>
+                          
+                          {/* Or use URL */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">or paste URL:</span>
+                            <Input
+                              value={postForm.image_url}
+                              onChange={(e) => {
+                                setPostForm({ ...postForm, image_url: e.target.value });
+                                setImagePreview(null);
+                              }}
+                              placeholder="https://..."
+                              className="border-2 border-black rounded-xl text-sm"
+                              data-testid="post-image-input"
+                            />
+                          </div>
+                          
+                          {!postForm.image_url && !imagePreview && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                              <ImageIcon className="w-3 h-3" />
+                              No image? A default NYC skyline will be shown.
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <Label className="font-primary font-semibold">Video URL (optional)</Label>
