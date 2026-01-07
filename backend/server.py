@@ -614,7 +614,20 @@ async def reset_password_with_token(reset_data: PasswordResetRequest):
 
 @api_router.get("/posts", response_model=List[PostResponse])
 async def get_posts():
-    posts = await db.posts.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    """Get all approved posts (public)"""
+    posts = await db.posts.find({"status": "approved"}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return posts
+
+@api_router.get("/posts/pending", response_model=List[PostResponse])
+async def get_pending_posts(user: dict = Depends(get_admin_user)):
+    """Get all pending posts for admin review"""
+    posts = await db.posts.find({"status": "pending"}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return posts
+
+@api_router.get("/posts/my", response_model=List[PostResponse])
+async def get_my_posts(user: dict = Depends(get_current_user)):
+    """Get current user's posts (all statuses)"""
+    posts = await db.posts.find({"author_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
     return posts
 
 @api_router.get("/posts/{post_id}", response_model=PostResponse)
