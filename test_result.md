@@ -102,10 +102,10 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix authentication issues, fix fail to load errors, implement complete moderation workflow for posts/actions with admin notifications"
+user_problem_statement: "Implement complete Posts Experience with clickable posts, searchable library, post detail pages with comments, and markdown support"
 
 backend:
-  - task: "POST /api/posts - Create post with status (pending for users, approved for admins)"
+  - task: "GET /api/posts - Paginated, searchable posts list"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -114,10 +114,10 @@ backend:
     needs_retesting: false
     status_history:
         - working: true
-          agent: "testing"
-          comment: "✅ PASSED - User creates post with pending status, admin creates post with approved status. Tested with real user registration and admin credentials."
+          agent: "main"
+          comment: "Implemented with search, pagination, and sort. Tested via curl - returns posts array with total, page, limit, total_pages."
 
-  - task: "GET /api/posts/pending - Get pending posts for admin review"
+  - task: "GET /api/posts/latest - Latest approved posts for homepage"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -126,10 +126,10 @@ backend:
     needs_retesting: false
     status_history:
         - working: true
-          agent: "testing"
-          comment: "✅ PASSED - Admin can successfully retrieve pending posts for moderation. Verified admin-only access and proper filtering."
+          agent: "main"
+          comment: "Returns array of latest approved posts with comment_count."
 
-  - task: "POST /api/posts/:id/moderate - Approve/reject post"
+  - task: "GET /api/posts/{post_id} - Single post by ID"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -138,10 +138,10 @@ backend:
     needs_retesting: false
     status_history:
         - working: true
-          agent: "testing"
-          comment: "✅ PASSED - Admin can approve and reject posts. Approval makes posts visible in public feed. Rejection includes reason and is visible to user in /posts/my."
+          agent: "main"
+          comment: "Returns post with comment_count. Only returns approved posts to public."
 
-  - task: "POST /api/actions - Create action with status"
+  - task: "GET /api/posts/{post_id}/comments - Get comments for post"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -150,10 +150,10 @@ backend:
     needs_retesting: false
     status_history:
         - working: true
-          agent: "testing"
-          comment: "✅ PASSED - User creates action with pending status, admin creates action with approved status. Proper status assignment based on user role."
+          agent: "main"
+          comment: "Returns list of approved comments. Public endpoint."
 
-  - task: "GET /api/actions/pending - Get pending actions"
+  - task: "POST /api/posts/{post_id}/comments - Create comment (auth required)"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -162,10 +162,10 @@ backend:
     needs_retesting: false
     status_history:
         - working: true
-          agent: "testing"
-          comment: "✅ PASSED - Admin can successfully retrieve pending actions for moderation. Admin-only access verified."
+          agent: "main"
+          comment: "Creates comment with 15-second rate limit. Validated via curl - rate limit working correctly."
 
-  - task: "POST /api/actions/:id/moderate - Approve/reject action"
+  - task: "DELETE /api/comments/{comment_id} - Delete comment (admin/author)"
     implemented: true
     working: true
     file: "/app/backend/server.py"
@@ -174,145 +174,84 @@ backend:
     needs_retesting: false
     status_history:
         - working: true
-          agent: "testing"
-          comment: "✅ PASSED - Admin can approve and reject actions. Approval makes actions visible in public feed. Proper moderation workflow implemented."
-
-  - task: "GET /api/notifications - Admin notifications"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "testing"
-          comment: "✅ PASSED - Admin notifications endpoint working. Returns list of notifications for admin users."
-
-  - task: "GET /api/notifications/unread-count - Unread notification count"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "testing"
-          comment: "✅ PASSED - Unread notification count endpoint working. Returns proper count structure."
-
-  - task: "GET /api/health - Health check endpoint"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "testing"
-          comment: "✅ PASSED - Health check returns api: ok and database: ok. Proper health monitoring implemented."
-
-  - task: "POST /api/auth/register - User registration"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "testing"
-          comment: "✅ PASSED - User registration working. Creates non-admin users by default, returns token and user data."
-
-  - task: "POST /api/auth/login - User and admin login"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "testing"
-          comment: "✅ PASSED - Both user and admin login working with provided credentials (paperboytheprince@gmail.com). Proper token generation and user data return."
-
-  - task: "POST /api/auth/change-password - Password change"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "testing"
-          comment: "✅ PASSED - Password change working. Validates current password, updates to new password, and allows login with new credentials."
-
-  - task: "GET /api/posts/my - User's own posts with status"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "testing"
-          comment: "✅ PASSED - Users can see their own posts including pending and rejected posts with rejection reasons."
-
-  - task: "GET /api/actions/my - User's own actions with status"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "testing"
-          comment: "✅ PASSED - Users can see their own actions including pending status. Proper filtering by user ID."
+          agent: "main"
+          comment: "Admin or comment author can delete. Tested via curl."
 
 frontend:
-  - task: "Admin Moderation page at /admin/moderation"
+  - task: "Home page - Clickable post cards with View All Posts link"
     implemented: true
-    working: "NA"
-    file: "/app/frontend/src/pages/AdminModeration.jsx"
+    working: true
+    file: "/app/frontend/src/pages/Home.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Post cards now link to /posts/:id. View All Posts link added in section header and below posts grid."
 
-  - task: "Profile page shows user's submissions with status"
+  - task: "Posts Library page at /posts"
     implemented: true
-    working: "NA"
-    file: "/app/frontend/src/pages/Profile.jsx"
+    working: true
+    file: "/app/frontend/src/pages/Posts.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Created with search bar, sort order toggle, pagination, and grid of clickable post cards."
 
-  - task: "Admin Dashboard shows pending counts"
+  - task: "Post Detail page at /posts/:id"
     implemented: true
-    working: "NA"
-    file: "/app/frontend/src/pages/AdminDashboard.jsx"
+    working: true
+    file: "/app/frontend/src/pages/PostDetail.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Created with hero image, title, author, date, share button, markdown-rendered content, and comments section."
+
+  - task: "CommentSection component"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/components/comments/CommentSection.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Shows comments list with author, timestamp, delete button (for admin/author). Comment form for logged-in users, login prompt for guests."
+
+  - task: "Markdown rendering with sanitization"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/PostDetail.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "main"
+          comment: "Using react-markdown with remark-gfm and rehype-sanitize. Supports bold, italics, links, lists, code blocks."
 
 metadata:
   created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 5
+  version: "2.0"
+  test_sequence: 6
   run_ui: true
 
 test_plan:
   current_focus:
-    - "All moderation workflow tests completed successfully"
+    - "Complete Posts Experience feature testing"
+    - "Verify all acceptance criteria from user requirements"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
 
 agent_communication:
     - agent: "main"
-      message: "Implemented complete moderation workflow. Test flows: 1) Create user account and login, 2) Create a post as user - should be pending, 3) Login as admin (paperboytheprince@gmail.com / PaperboyAdmin#2025!Secure1), 4) Go to /admin/moderation, 5) Approve the post, 6) Verify post appears on home feed. Same for actions."
-    - agent: "testing"
-      message: "✅ COMPREHENSIVE MODERATION WORKFLOW TESTING COMPLETED - All 21 tests passed successfully. Tested complete user registration, authentication, post/action creation with pending status, admin moderation (approve/reject), public feed visibility, notifications, health check, and password change. Admin credentials working: paperboytheprince@gmail.com. All acceptance criteria from review request verified and working correctly."
+      message: "Implemented complete Posts Experience feature. Test flows: 1) Homepage posts are now clickable - click to go to detail page, 2) /posts library page with search and pagination, 3) Post detail page with markdown rendering and comments, 4) Comments: logged-in users can post, rate limited to 1 per 15 seconds, admin/author can delete. Admin credentials: paperboytheprince@gmail.com / PaperboyAdmin#2025!Secure1"
