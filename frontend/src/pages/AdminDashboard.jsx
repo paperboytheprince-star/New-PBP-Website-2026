@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { adminAPI, postsAPI, productsAPI, eventsAPI, actionsAPI, notifyAPI } from '../lib/api';
+import { adminAPI, postsAPI, productsAPI, eventsAPI, actionsAPI, notifyAPI, uploadAPI, DEFAULT_POST_IMAGE } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
@@ -34,7 +34,7 @@ import {
 } from '../components/ui/table';
 import { 
   Heart, Users, ShoppingBag, Calendar, Megaphone, FileText, 
-  Plus, Edit2, Trash2, ArrowLeft, LogOut, BarChart3, Check, Bell, Mail
+  Plus, Edit2, Trash2, ArrowLeft, LogOut, BarChart3, Check, Bell, Mail, Upload, X, Image as ImageIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 
