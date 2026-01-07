@@ -1117,6 +1117,58 @@ class ModerationWorkflowTester:
             print(f"✅ Health check and password change working")
             return True
 
+    def run_posts_experience_tests(self):
+        """Run Posts Experience feature tests"""
+        print("🎯 POSTS EXPERIENCE TESTING")
+        print("=" * 60)
+        print("Testing complete Posts Experience feature...")
+        
+        # Reset counters for this test suite
+        initial_tests_run = self.tests_run
+        initial_tests_passed = self.tests_passed
+        initial_failed_tests = len(self.failed_tests)
+        
+        # Authentication first (required for some tests)
+        auth_tests = [
+            ("Admin Login", self.test_admin_login),
+            ("User Registration", self.test_user_registration),
+            ("User Login", self.test_user_login),
+        ]
+        
+        for test_name, test_func in auth_tests:
+            try:
+                test_func()
+            except Exception as e:
+                self.log_result(test_name, False, f"Exception: {str(e)}")
+        
+        # Run Posts Experience tests
+        self.test_posts_experience_comprehensive()
+        
+        # Calculate results for this test suite
+        posts_tests_run = self.tests_run - initial_tests_run
+        posts_tests_passed = self.tests_passed - initial_tests_passed
+        posts_failed_tests = len(self.failed_tests) - initial_failed_tests
+        
+        # Print final results
+        print("\n" + "=" * 60)
+        print(f"📊 POSTS EXPERIENCE TEST RESULTS")
+        print(f"Tests Passed: {posts_tests_passed}/{posts_tests_run}")
+        
+        if posts_failed_tests > 0:
+            print(f"\n❌ FAILED TESTS:")
+            for failure in self.failed_tests[initial_failed_tests:]:
+                print(f"  • {failure['test']}: {failure['details']}")
+            return False
+        else:
+            print(f"\n✅ ALL POSTS EXPERIENCE TESTS PASSED!")
+            print(f"✅ Posts pagination, search, and sort working")
+            print(f"✅ Latest posts endpoint working")
+            print(f"✅ Single post retrieval with comment count working")
+            print(f"✅ Comment creation with authentication working")
+            print(f"✅ Comment rate limiting (15 seconds) working")
+            print(f"✅ Comment deletion permissions working correctly")
+            return True
+
 def main():
     tester = ModerationWorkflowTester()
     success = tester.run_moderation_tests()
