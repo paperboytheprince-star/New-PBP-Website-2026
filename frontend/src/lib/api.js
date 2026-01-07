@@ -3,38 +3,117 @@ import axios from 'axios';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API_BASE = `${BACKEND_URL}/api`;
 
+// API call logging for diagnostics
+const apiCallLog = [];
+const MAX_LOG_SIZE = 20;
+
+const logApiCall = (entry) => {
+  apiCallLog.unshift({
+    ...entry,
+    timestamp: new Date().toISOString(),
+  });
+  if (apiCallLog.length > MAX_LOG_SIZE) {
+    apiCallLog.pop();
+  }
+  // Also log to console for debugging
+  console.log(`[API ${entry.status}] ${entry.method} ${entry.url}`, entry.error || '');
+};
+
+export const getApiCallLog = () => [...apiCallLog];
+
 const api = axios.create({
   baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30 second timeout
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token and log
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('pp_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  config._startTime = Date.now();
   return config;
 });
 
-// Response interceptor for error handling
+// Response interceptor for error handling and logging
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    logApiCall({
+      method: response.config.method?.toUpperCase(),
+      url: response.config.url,
+      status: response.status,
+      duration: Date.now() - (response.config._startTime || Date.now()),
+    });
+    return response;
+  },
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status || 0;
+    const errorMessage = error.response?.data?.detail || error.message || 'Unknown error';
+    
+    logApiCall({
+      method: error.config?.method?.toUpperCase(),
+      url: error.config?.url,
+      status: status,
+      error: errorMessage,
+      duration: Date.now() - (error.config?._startTime || Date.now()),
+    });
+    
+    if (status === 401) {
       localStorage.removeItem('pp_token');
       localStorage.removeItem('pp_user');
       if (window.location.pathname !== '/login' && 
           window.location.pathname !== '/register' &&
+          window.location.pathname !== '/reset-password' &&
           window.location.pathname !== '/admin') {
         window.location.href = '/login';
       }
     }
+    
+    // Enhance error object with more details
+    error.apiStatus = status;
+    error.apiMessage = errorMessage;
+    error.isNetworkError = !error.response;
+    error.isAuthError = status === 401;
+    error.isPermissionError = status === 403;
+    error.isServerError = status >= 500;
+    
     return Promise.reject(error);
   }
 );
+
+// Retry logic for transient failures (network, 502/503) - NOT for 401/403/404/500
+const retryableStatuses = [502, 503, 504];
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000;
+
+export const apiWithRetry = async (apiCall, retries = MAX_RETRIES) => {
+  try {
+    return await apiCall();
+  } catch (error) {
+    const shouldRetry = 
+      (error.isNetworkError || retryableStatuses.includes(error.apiStatus)) && 
+      retries > 0;
+    
+    if (shouldRetry) {
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+      return apiWithRetry(apiCall, retries - 1);
+    }
+    throw error;
+  }
+};
+
+// Helper to get user-friendly error message
+export const getErrorMessage = (error) => {
+  if (error.isNetworkError) return 'Network error - please check your connection';
+  if (error.isAuthError) return 'Session expired - please log in again';
+  if (error.isPermissionError) return 'You do not have permission for this action';
+  if (error.isServerError) return 'Server error - please try again later';
+  return error.apiMessage || 'An error occurred';
+};
 
 // Auth
 export const authAPI = {
