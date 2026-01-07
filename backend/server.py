@@ -400,6 +400,61 @@ def validate_password(password: str) -> tuple[bool, str]:
         return False, "Password must contain at least one special character"
     return True, ""
 
+# ============ NOTIFICATION HELPERS ============
+
+async def create_admin_notifications(entity_type: str, entity_id: str, entity_title: str, author_name: str):
+    """Create in-app notifications for all admins when content is submitted"""
+    admins = await db.users.find({"is_admin": True}, {"_id": 0, "id": 1, "email": 1}).to_list(100)
+    now = datetime.now(timezone.utc).isoformat()
+    
+    for admin in admins:
+        notification_doc = {
+            "id": str(uuid.uuid4()),
+            "recipient_admin_id": admin["id"],
+            "notification_type": f"new_{entity_type}",
+            "entity_type": entity_type,
+            "entity_id": entity_id,
+            "message": f"New {entity_type} '{entity_title}' submitted by {author_name} awaiting review",
+            "created_at": now,
+            "read_at": None
+        }
+        await db.notifications.insert_one(notification_doc)
+    
+    return len(admins)
+
+async def log_email_attempt(to_email: str, template_type: str, entity_type: str, entity_id: str, 
+                           email_status: str, error: str = None):
+    """Log email delivery attempts for debugging"""
+    log_doc = {
+        "id": str(uuid.uuid4()),
+        "to_email": to_email,
+        "template_type": template_type,
+        "entity_type": entity_type,
+        "entity_id": entity_id,
+        "status": email_status,
+        "error": error,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.email_logs.insert_one(log_doc)
+    return log_doc
+
+async def send_admin_notification_emails(entity_type: str, entity_id: str, entity_title: str, author_name: str):
+    """Send email notifications to all admins (logs attempt since email not configured)"""
+    admins = await db.users.find({"is_admin": True}, {"_id": 0, "id": 1, "email": 1}).to_list(100)
+    
+    for admin in admins:
+        # Log the email attempt (email provider not configured)
+        await log_email_attempt(
+            to_email=admin["email"],
+            template_type="pending_content_notification",
+            entity_type=entity_type,
+            entity_id=entity_id,
+            email_status="skipped",
+            error="Email provider not configured - notification logged for future delivery"
+        )
+    
+    return len(admins)
+
 # ============ AUTH ROUTES ============
 
 @api_router.post("/auth/register")
