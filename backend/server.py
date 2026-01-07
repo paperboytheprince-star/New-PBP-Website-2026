@@ -47,9 +47,20 @@ JWT_EXPIRATION_HOURS = 24
 # Admin emails that have automatic admin access
 ADMIN_EMAILS = os.environ.get('ADMIN_EMAILS', '').split(',')
 
+# Upload configuration
+UPLOAD_DIR = ROOT_DIR / "uploads"
+UPLOAD_DIR.mkdir(exist_ok=True)
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp"}
+MAX_IMAGE_DIMENSION = 1600  # Max width/height after resize
+DEFAULT_POST_IMAGE = "/default-post.jpg"  # Relative to frontend public
+
 app = FastAPI(title="Paperboy Prince Platform API")
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
+
+# Mount static files for uploads
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 # ============ REQUEST LOGGING MIDDLEWARE ============
 @app.middleware("http")
