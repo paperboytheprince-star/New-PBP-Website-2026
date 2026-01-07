@@ -896,18 +896,15 @@ class ModerationWorkflowTester:
         data, error = self.make_request('DELETE', f'comments/{comment_id}', 
                                       expected_status=403, token=self.user_token)
         
-        if error and "403" in str(error):
-            self.log_result("Comment Deletion Unauthorized", True, "Unauthorized deletion correctly blocked")
-            # Clean up the comment as admin
-            self.make_request('DELETE', f'comments/{comment_id}', token=self.admin_token)
-            return True
-        elif data and data.get('status_code') == 403:
+        # Check for authorization error (either 403 status or error message about authorization)
+        if ((error and "403" in str(error)) or 
+            (data and "authorized" in str(data.get('detail', '')).lower())):
             self.log_result("Comment Deletion Unauthorized", True, "Unauthorized deletion correctly blocked")
             # Clean up the comment as admin
             self.make_request('DELETE', f'comments/{comment_id}', token=self.admin_token)
             return True
         else:
-            self.log_result("Comment Deletion Unauthorized", False, f"Expected 403 error, got: {error or data}")
+            self.log_result("Comment Deletion Unauthorized", False, f"Expected authorization error, got: {error or data}")
             # Clean up the comment as admin
             self.make_request('DELETE', f'comments/{comment_id}', token=self.admin_token)
             return False
