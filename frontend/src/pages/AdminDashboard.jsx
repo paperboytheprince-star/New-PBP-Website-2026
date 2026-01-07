@@ -361,21 +361,52 @@ const AdminDashboard = () => {
 
           {/* Overview Tab */}
           <TabsContent value="overview">
+            {/* Pending Items Alert */}
+            {(stats?.pending_posts > 0 || stats?.pending_actions > 0) && (
+              <Card className="border-2 border-orange-500 bg-orange-50 rounded-xl mb-6">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                        <Bell className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-campaign text-lg">PENDING REVIEW</p>
+                        <p className="font-primary text-sm text-muted-foreground">
+                          {stats?.pending_posts || 0} posts, {stats?.pending_actions || 0} actions awaiting approval
+                        </p>
+                      </div>
+                    </div>
+                    <Link to="/admin/moderation">
+                      <Button className="rounded-full bg-orange-500 text-white border-2 border-black">
+                        Review Now
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               {[
                 { label: 'Users', value: stats?.users || 0, icon: Users, color: 'bg-blue-500' },
-                { label: 'Posts', value: stats?.posts || 0, icon: FileText, color: 'bg-green-500' },
+                { label: 'Posts', value: stats?.posts || 0, icon: FileText, color: 'bg-green-500', pending: stats?.pending_posts },
                 { label: 'Products', value: stats?.products || 0, icon: ShoppingBag, color: 'bg-purple-500' },
                 { label: 'Events', value: stats?.events || 0, icon: Calendar, color: 'bg-orange-500' },
-                { label: 'Actions', value: stats?.actions || 0, icon: Megaphone, color: 'bg-pp-magenta' },
+                { label: 'Actions', value: stats?.actions || 0, icon: Megaphone, color: 'bg-pp-magenta', pending: stats?.pending_actions },
                 { label: 'RSVPs', value: stats?.rsvps || 0, icon: Check, color: 'bg-teal-500' },
                 { label: 'Action Signups', value: stats?.action_signups || 0, icon: Heart, color: 'bg-pink-500' },
                 { label: 'Shop Subscribers', value: stats?.notify_subscribers || 0, icon: Bell, color: 'bg-yellow-500' },
               ].map((stat, idx) => (
                 <Card key={idx} className="border-2 border-black rounded-xl">
                   <CardContent className="p-4 flex items-center gap-4">
-                    <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center`}>
+                    <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center relative`}>
                       <stat.icon className="w-6 h-6 text-white" />
+                      {stat.pending > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                          {stat.pending}
+                        </span>
+                      )}
                     </div>
                     <div>
                       <p className="font-primary text-2xl font-bold">{stat.value}</p>
@@ -384,6 +415,26 @@ const AdminDashboard = () => {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+            
+            {/* Quick Links */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <Link to="/admin/users">
+                <Card className="border-2 border-black rounded-xl hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <Users className="w-6 h-6 text-pp-magenta" />
+                    <span className="font-campaign">USER MANAGEMENT</span>
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link to="/admin/moderation">
+                <Card className="border-2 border-black rounded-xl hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardContent className="p-4 flex items-center gap-3">
+                    <FileText className="w-6 h-6 text-pp-magenta" />
+                    <span className="font-campaign">MODERATION QUEUE</span>
+                  </CardContent>
+                </Card>
+              </Link>
             </div>
           </TabsContent>
 
