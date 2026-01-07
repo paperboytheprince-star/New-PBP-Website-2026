@@ -83,10 +83,13 @@ export const eventsAPI = {
 // Actions
 export const actionsAPI = {
   getAll: () => api.get('/actions'),
+  getPending: () => api.get('/actions/pending'),
+  getMyActions: () => api.get('/actions/my'),
   getOne: (id) => api.get(`/actions/${id}`),
   create: (data) => api.post('/actions', data),
   update: (id, data) => api.put(`/actions/${id}`, data),
   delete: (id) => api.delete(`/actions/${id}`),
+  moderate: (id, action, rejectionReason = null) => api.post(`/actions/${id}/moderate`, { action, rejection_reason: rejectionReason }),
   signup: (id, data = {}) => api.post(`/actions/${id}/signup`, data),
   cancelSignup: (id) => api.delete(`/actions/${id}/signup`),
   getParticipants: (id) => api.get(`/actions/${id}/participants`),
