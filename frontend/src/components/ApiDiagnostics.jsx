@@ -19,9 +19,6 @@ const ApiDiagnostics = () => {
   const [healthStatus, setHealthStatus] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Only show for admins
-  if (!isAdmin) return null;
-
   const refreshData = async () => {
     setLoading(true);
     setApiCalls(getApiCallLog());
@@ -35,10 +32,13 @@ const ApiDiagnostics = () => {
   };
 
   useEffect(() => {
-    if (open) {
+    if (open && isAdmin) {
       refreshData();
     }
-  }, [open]);
+  }, [open, isAdmin]);
+
+  // Only render for admins
+  if (!isAdmin) return null;
 
   const getStatusColor = (status) => {
     if (!status) return 'bg-gray-400';
