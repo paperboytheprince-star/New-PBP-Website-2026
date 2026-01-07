@@ -169,9 +169,12 @@ const Home = () => {
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h2 className="font-campaign text-3xl md:text-4xl tracking-wider text-pp-magenta" data-testid="feed-title">
-            LATEST UPDATES
+            LATEST POSTS
           </h2>
-          <div className="love-beam w-24 h-1 hidden md:block" />
+          <Link to="/posts" className="hidden md:flex items-center gap-2 text-pp-magenta hover:text-pp-magenta/80 font-primary font-semibold transition-colors">
+            View All Posts
+            <ArrowRight className="w-4 h-4" />
+          </Link>
         </div>
 
         {loading ? (
