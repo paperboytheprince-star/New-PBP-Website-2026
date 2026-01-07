@@ -19,7 +19,7 @@ const Profile = () => {
   const [myRsvps, setMyRsvps] = useState([]);
   const [mySignups, setMySignups] = useState([]);
   const [myPosts, setMyPosts] = useState([]);
-  const [myActions, setMyActions] = useState([]);
+  const [mySubmittedActions, setMySubmittedActions] = useState([]);
   const [events, setEvents] = useState([]);
   const [actions, setActions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +51,7 @@ const Profile = () => {
       setEvents(eventsRes.data);
       setActions(actionsRes.data);
       setMyPosts(myPostsRes.data);
-      setMyActions(myActionsRes.data);
+      setMySubmittedActions(myActionsRes.data);
     } catch (error) {
       console.error('Error loading profile data:', error);
     } finally {
@@ -73,7 +73,7 @@ const Profile = () => {
     try {
       await actionsAPI.cancelSignup(actionId);
       setMySignups(mySignups.filter(id => id !== actionId));
-      toast.success('Signup cancelled');
+      toast.success('Action signup cancelled');
     } catch (error) {
       toast.error('Failed to cancel signup');
     }
@@ -166,7 +166,7 @@ const Profile = () => {
         </CardContent>
       </Card>
 
-      {/* Tabs for Activity and Submissions */}
+      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
         <TabsList className="mb-6">
           <TabsTrigger value="activity" className="font-campaign">MY ACTIVITY</TabsTrigger>
@@ -197,9 +197,7 @@ const Profile = () => {
                     <Calendar className="w-12 h-12 text-pp-pink mx-auto mb-3" />
                     <p className="font-primary text-muted-foreground">No RSVPs yet</p>
                     <Link to="/events">
-                      <Button variant="link" className="text-pp-magenta mt-2">
-                        Browse Events
-                      </Button>
+                      <Button variant="link" className="text-pp-magenta mt-2">Browse Events</Button>
                     </Link>
                   </div>
                 ) : (
@@ -212,14 +210,8 @@ const Profile = () => {
                             {format(parseISO(event.date), 'MMM d, yyyy')}
                           </p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                          onClick={() => cancelRsvp(event.id)}
-                        >
-                          <X className="w-4 h-4 mr-1" />
-                          Cancel
+                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600" onClick={() => cancelRsvp(event.id)}>
+                          <X className="w-4 h-4 mr-1" />Cancel
                         </Button>
                       </div>
                     ))}
@@ -248,9 +240,7 @@ const Profile = () => {
                     <Megaphone className="w-12 h-12 text-pp-pink mx-auto mb-3" />
                     <p className="font-primary text-muted-foreground">No action signups yet</p>
                     <Link to="/action">
-                      <Button variant="link" className="text-pp-magenta mt-2">
-                        Browse Actions
-                      </Button>
+                      <Button variant="link" className="text-pp-magenta mt-2">Browse Actions</Button>
                     </Link>
                   </div>
                 ) : (
@@ -261,14 +251,8 @@ const Profile = () => {
                           <h4 className="font-primary font-semibold">{action.title}</h4>
                           <Badge variant="outline" className="text-xs mt-1">{action.action_type}</Badge>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                          onClick={() => cancelSignup(action.id)}
-                        >
-                          <X className="w-4 h-4 mr-1" />
-                          Leave
+                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600" onClick={() => cancelSignup(action.id)}>
+                          <X className="w-4 h-4 mr-1" />Leave
                         </Button>
                       </div>
                     ))}
@@ -329,7 +313,7 @@ const Profile = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-campaign text-2xl tracking-wider">
                   <Megaphone className="w-6 h-6 text-pp-magenta" />
-                  MY SUBMITTED ACTIONS
+                  SUBMITTED ACTIONS
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -339,14 +323,14 @@ const Profile = () => {
                       <Skeleton key={i} className="h-20 w-full rounded-xl" />
                     ))}
                   </div>
-                ) : myActions.length === 0 ? (
+                ) : mySubmittedActions.length === 0 ? (
                   <div className="text-center py-8">
                     <Megaphone className="w-12 h-12 text-pp-pink mx-auto mb-3" />
                     <p className="font-primary text-muted-foreground">No submitted actions yet</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {myActions.map(action => (
+                    {mySubmittedActions.map(action => (
                       <div key={action.id} className="p-4 rounded-xl border-2 border-gray-200">
                         <div className="flex justify-between items-start mb-2">
                           <h4 className="font-primary font-semibold">{action.title}</h4>
@@ -370,161 +354,61 @@ const Profile = () => {
         
         {/* Settings Tab */}
         <TabsContent value="settings">
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {myEvents.map((event) => (
-                  <div 
-                    key={event.id}
-                    className="flex items-center gap-4 p-4 bg-muted rounded-xl border-2 border-black"
-                    data-testid={`rsvp-item-${event.id}`}
-                  >
-                    <div className="w-14 h-14 bg-pp-magenta rounded-xl flex flex-col items-center justify-center text-white">
-                      <span className="font-campaign text-xl leading-none">
-                        {format(parseISO(event.date), 'd')}
-                      </span>
-                      <span className="font-campaign text-xs leading-none">
-                        {format(parseISO(event.date), 'MMM')}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-primary font-bold">{event.title}</h4>
-                      <p className="font-primary text-sm text-muted-foreground">
-                        {event.location}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => cancelRsvp(event.id)}
-                      data-testid={`cancel-rsvp-${event.id}`}
-                    >
-                      <X className="w-5 h-5" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* My Actions */}
-        <Card className="rounded-3xl border-2 border-black">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-campaign text-2xl tracking-wider">
-              <Megaphone className="w-6 h-6 text-pp-magenta" />
-              MY ACTIONS
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-4">
-                {[...Array(2)].map((_, i) => (
-                  <Skeleton key={i} className="h-20 w-full rounded-xl" />
-                ))}
-              </div>
-            ) : myActions.length === 0 ? (
-              <div className="text-center py-8">
-                <Heart className="w-12 h-12 text-pp-pink mx-auto mb-3" />
-                <p className="font-primary text-muted-foreground">No actions taken yet</p>
-                <Link to="/action">
-                  <Button variant="link" className="text-pp-magenta mt-2">
-                    Take Action
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {myActions.map((action) => (
-                  <div 
-                    key={action.id}
-                    className="flex items-center gap-4 p-4 bg-muted rounded-xl border-2 border-black"
-                    data-testid={`action-item-${action.id}`}
-                  >
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-white ${
-                      action.action_type === 'volunteer' ? 'bg-green-500' :
-                      action.action_type === 'petition' ? 'bg-blue-500' : 'bg-pp-magenta'
-                    }`}>
-                      <Check className="w-6 h-6" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-primary font-bold">{action.title}</h4>
-                      <Badge variant="outline" className="mt-1 font-campaign text-xs uppercase">
-                        {action.action_type}
-                      </Badge>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => cancelSignup(action.id)}
-                      data-testid={`cancel-action-${action.id}`}
-                    >
-                      <X className="w-5 h-5" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Change Password Section */}
-      <Card className="rounded-3xl border-2 border-black mt-8">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 font-campaign text-2xl tracking-wider">
-            <Key className="w-6 h-6 text-pp-magenta" />
-            CHANGE PASSWORD
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
-            <div>
-              <Label htmlFor="currentPassword" className="font-primary">Current Password</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                value={passwordForm.currentPassword}
-                onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
-                required
-                className="mt-1 border-2 border-black rounded-xl"
-              />
-            </div>
-            <div>
-              <Label htmlFor="newPassword" className="font-primary">New Password</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                value={passwordForm.newPassword}
-                onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                required
-                minLength={8}
-                className="mt-1 border-2 border-black rounded-xl"
-              />
-            </div>
-            <div>
-              <Label htmlFor="confirmPassword" className="font-primary">Confirm New Password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={passwordForm.confirmPassword}
-                onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                required
-                className="mt-1 border-2 border-black rounded-xl"
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={changingPassword}
-              className="rounded-full bg-pp-magenta text-white font-bold px-6 py-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all"
-            >
-              {changingPassword ? 'Changing...' : 'Change Password'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          <Card className="rounded-3xl border-2 border-black">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 font-campaign text-2xl tracking-wider">
+                <Key className="w-6 h-6 text-pp-magenta" />
+                CHANGE PASSWORD
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
+                <div>
+                  <Label htmlFor="currentPassword" className="font-primary">Current Password</Label>
+                  <Input
+                    id="currentPassword"
+                    type="password"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                    required
+                    className="mt-1 border-2 border-black rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="newPassword" className="font-primary">New Password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                    required
+                    minLength={8}
+                    className="mt-1 border-2 border-black rounded-xl"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="confirmPassword" className="font-primary">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                    required
+                    className="mt-1 border-2 border-black rounded-xl"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={changingPassword}
+                  className="rounded-full bg-pp-magenta text-white font-bold px-6 py-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all"
+                >
+                  {changingPassword ? 'Changing...' : 'Change Password'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
