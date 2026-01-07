@@ -220,7 +220,7 @@ const Home = () => {
           </div>
         )}
 
-        {posts.length === 0 && !loading && (
+        {posts.length === 0 && !loading && !error && (
           <div className="text-center py-12 px-4 bg-muted rounded-3xl border-2 border-dashed border-gray-300">
             <FileText className="w-16 h-16 text-pp-pink mx-auto mb-4" />
             <p className="font-primary text-lg text-muted-foreground mb-2">
@@ -229,6 +229,31 @@ const Home = () => {
             <p className="font-primary text-sm text-muted-foreground">
               Admins can create the first post.
             </p>
+          </div>
+        )}
+        
+        {error && (
+          <div className="text-center py-12 px-4 bg-red-50 rounded-3xl border-2 border-red-200">
+            <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
+            <p className="font-primary text-lg text-red-600 mb-2">
+              {error.message}
+            </p>
+            <p className="font-primary text-sm text-muted-foreground mb-4">
+              {error.status === 401 && 'Please log in to continue'}
+              {error.status === 403 && 'You do not have permission to view this content'}
+              {error.status >= 500 && 'Our servers are having issues. Please try again.'}
+              {error.status === 0 && 'Check your internet connection'}
+            </p>
+            {error.isRetryable && (
+              <Button 
+                onClick={loadData}
+                variant="outline"
+                className="rounded-full border-2 border-red-300 text-red-600 hover:bg-red-100"
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Try Again
+              </Button>
+            )}
           </div>
         )}
       </section>
