@@ -8,6 +8,8 @@ import ActionCenter from "./pages/ActionCenter";
 import About from "./pages/About";
 import Films from "./pages/Films";
 import Music from "./pages/Music";
+import Posts from "./pages/Posts";
+import PostDetail from "./pages/PostDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
