@@ -937,7 +937,87 @@ async def delete_post(post_id: str, user: dict = Depends(get_admin_user)):
     result = await db.posts.delete_one({"id": post_id})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Post not found")
+    # Also delete associated comments
+    await db.comments.delete_many({"post_id": post_id})
     return {"message": "Post deleted"}
+
+# ============ COMMENT ROUTES ============
+
+def check_comment_rate_limit(user_id: str) -> bool:
+    """Check if user can create a comment (rate limited to 1 per 15 seconds)"""
+    now = time.time()
+    last_comment = comment_rate_limit.get(user_id, 0)
+    if now - last_comment < COMMENT_RATE_LIMIT_SECONDS:
+        return False
+    comment_rate_limit[user_id] = now
+    return True
+
+@api_router.get("/posts/{post_id}/comments", response_model=List[CommentResponse])
+async def get_post_comments(post_id: str):
+    """Get all approved comments for a post (public)"""
+    # Verify post exists and is approved
+    post = await db.posts.find_one({"id": post_id}, {"_id": 0})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if post.get("status") != "approved":
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    comments = await db.comments.find(
+        {"post_id": post_id, "status": "approved"}, 
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(500)
+    return comments
+
+@api_router.post("/posts/{post_id}/comments", response_model=CommentResponse)
+async def create_comment(post_id: str, comment_data: CommentCreate, user: dict = Depends(get_current_user)):
+    """Create a comment on a post (authenticated users only)"""
+    # Rate limit check
+    if not check_comment_rate_limit(user["id"]):
+        raise HTTPException(
+            status_code=429, 
+            detail=f"Please wait {COMMENT_RATE_LIMIT_SECONDS} seconds between comments"
+        )
+    
+    # Verify post exists and is approved
+    post = await db.posts.find_one({"id": post_id}, {"_id": 0})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if post.get("status") != "approved":
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    comment_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Comments are immediately visible (no moderation)
+    comment_doc = {
+        "id": comment_id,
+        "post_id": post_id,
+        "author_id": user["id"],
+        "author_name": user["name"],
+        "body": comment_data.body.strip(),
+        "status": "approved",
+        "created_at": now
+    }
+    await db.comments.insert_one(comment_doc)
+    
+    return comment_doc
+
+@api_router.delete("/comments/{comment_id}")
+async def delete_comment(comment_id: str, user: dict = Depends(get_current_user)):
+    """Delete a comment (admin or comment author only)"""
+    comment = await db.comments.find_one({"id": comment_id}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check permission: must be admin or comment author
+    is_admin = user.get("is_admin", False)
+    is_author = comment["author_id"] == user["id"]
+    
+    if not (is_admin or is_author):
+        raise HTTPException(status_code=403, detail="Not authorized to delete this comment")
+    
+    await db.comments.delete_one({"id": comment_id})
+    return {"message": "Comment deleted"}
 
 # ============ PRODUCT ROUTES ============
 
