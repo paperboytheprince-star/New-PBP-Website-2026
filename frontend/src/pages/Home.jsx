@@ -1,11 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { postsAPI, apiWithRetry, getErrorMessage } from '../lib/api';
+import { postsAPI, apiWithRetry, getErrorMessage, DEFAULT_POST_IMAGE } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Skeleton } from '../components/ui/skeleton';
 import { ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign, FileText, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Helper to get post image URL with fallback
+const getPostImageUrl = (imageUrl) => {
+  if (!imageUrl) return DEFAULT_POST_IMAGE;
+  // Handle relative URLs from our upload API
+  if (imageUrl.startsWith('/api/uploads/')) {
+    return `${process.env.REACT_APP_BACKEND_URL}${imageUrl}`;
+  }
+  return imageUrl;
+};
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
