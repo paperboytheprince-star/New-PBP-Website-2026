@@ -6,20 +6,30 @@ import json
 from datetime import datetime, timezone
 import uuid
 
-class ProductionLaunchTester:
+class ModerationWorkflowTester:
     def __init__(self, base_url="https://prince-media.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_base = f"{base_url}/api"
-        self.token = None
+        self.admin_token = None
+        self.user_token = None
         self.tests_run = 0
         self.tests_passed = 0
         self.failed_tests = []
-        self.admin_email = "admin@paperboyprince.com"
-        self.admin_password = "admin123"
+        
+        # Admin credentials from review request
+        self.admin_email = "paperboytheprince@gmail.com"
+        self.admin_password = "PaperboyAdmin#2025!Secure1"
+        
+        # Test user credentials
+        self.test_user_email = f"testuser_{uuid.uuid4().hex[:8]}@example.com"
+        self.test_user_password = "TestUser123!"
+        self.test_user_name = "Test User"
         
         # Test data storage
         self.created_post_id = None
-        self.created_event_id = None
+        self.created_action_id = None
+        self.rejected_post_id = None
+        self.user_id = None
 
     def log_result(self, test_name, success, details=""):
         """Log test result"""
