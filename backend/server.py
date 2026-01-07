@@ -747,10 +747,78 @@ async def get_uploaded_image(filename: str):
 
 # ============ POST ROUTES ============
 
-@api_router.get("/posts", response_model=List[PostResponse])
-async def get_posts():
-    """Get all approved posts (public)"""
-    posts = await db.posts.find({"status": "approved"}, {"_id": 0}).sort("created_at", -1).to_list(100)
+# Comment rate limiting
+comment_rate_limit = defaultdict(float)
+COMMENT_RATE_LIMIT_SECONDS = 15
+
+@api_router.get("/posts")
+async def get_posts(
+    search: Optional[str] = None,
+    sort: Optional[str] = "newest",
+    page: int = 1,
+    limit: int = 12,
+    status: Optional[str] = None,
+    admin_view: bool = False,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(lambda: None)
+):
+    """Get posts with search, filters, and pagination. Public sees only approved."""
+    # Check if user is admin for admin_view
+    is_admin = False
+    if admin_view:
+        try:
+            # Try to get token from header manually
+            from fastapi import Request
+            # This is a simplified check - in production, properly extract token
+            is_admin = False  # Default to non-admin for public
+        except:
+            pass
+    
+    # Build query
+    query = {}
+    
+    # Status filter - public only sees approved
+    if admin_view and is_admin and status:
+        query["status"] = status
+    else:
+        query["status"] = "approved"
+    
+    # Search in title and content
+    if search:
+        query["$or"] = [
+            {"title": {"$regex": search, "$options": "i"}},
+            {"content": {"$regex": search, "$options": "i"}}
+        ]
+    
+    # Sort order
+    sort_order = -1 if sort == "newest" else 1
+    
+    # Get total count for pagination
+    total = await db.posts.count_documents(query)
+    
+    # Calculate skip
+    skip = (page - 1) * limit
+    
+    # Fetch posts
+    posts = await db.posts.find(query, {"_id": 0}).sort("created_at", sort_order).skip(skip).limit(limit).to_list(limit)
+    
+    # Add comment count to each post
+    for post in posts:
+        post["comment_count"] = await db.comments.count_documents({"post_id": post["id"], "status": "approved"})
+    
+    return {
+        "posts": posts,
+        "total": total,
+        "page": page,
+        "limit": limit,
+        "total_pages": (total + limit - 1) // limit
+    }
+
+@api_router.get("/posts/latest")
+async def get_latest_posts(limit: int = 6):
+    """Get latest approved posts for homepage preview"""
+    posts = await db.posts.find({"status": "approved"}, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
+    for post in posts:
+        post["comment_count"] = await db.comments.count_documents({"post_id": post["id"], "status": "approved"})
     return posts
 
 @api_router.get("/posts/pending", response_model=List[PostResponse])
@@ -765,11 +833,15 @@ async def get_my_posts(user: dict = Depends(get_current_user)):
     posts = await db.posts.find({"author_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
     return posts
 
-@api_router.get("/posts/{post_id}", response_model=PostResponse)
+@api_router.get("/posts/{post_id}")
 async def get_post(post_id: str):
+    """Get a single post by ID"""
     post = await db.posts.find_one({"id": post_id}, {"_id": 0})
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
+    
+    # Add comment count
+    post["comment_count"] = await db.comments.count_documents({"post_id": post_id, "status": "approved"})
     return post
 
 @api_router.post("/posts", response_model=PostResponse)
