@@ -30,6 +30,8 @@ class ModerationWorkflowTester:
         self.created_action_id = None
         self.rejected_post_id = None
         self.user_id = None
+        self.test_comment_id = None
+        self.existing_post_ids = []
 
     def log_result(self, test_name, success, details=""):
         """Log test result"""
