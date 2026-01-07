@@ -669,7 +669,7 @@ async def process_and_save_image(file: UploadFile, max_dimension: int = MAX_IMAG
     """Process, resize, and save an uploaded image. Returns the public URL."""
     # Validate file type
     if file.content_type not in ALLOWED_IMAGE_TYPES:
-        raise HTTPException(status_code=400, detail=f"Invalid file type. Allowed: JPG, PNG, WebP")
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPG, PNG, WebP")
     
     # Read file content
     content = await file.read()
