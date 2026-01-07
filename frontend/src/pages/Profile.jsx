@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { eventsAPI, actionsAPI, authAPI } from '../lib/api';
+import { eventsAPI, actionsAPI, authAPI, postsAPI } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
 import { Skeleton } from '../components/ui/skeleton';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-import { Heart, Calendar, Megaphone, ArrowLeft, LogOut, Check, X, Key } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Heart, Calendar, Megaphone, ArrowLeft, LogOut, Check, X, Key, FileText, Clock, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 
@@ -17,11 +18,14 @@ const Profile = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [myRsvps, setMyRsvps] = useState([]);
   const [mySignups, setMySignups] = useState([]);
+  const [myPosts, setMyPosts] = useState([]);
+  const [myActions, setMyActions] = useState([]);
   const [events, setEvents] = useState([]);
   const [actions, setActions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [changingPassword, setChangingPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState('activity');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -33,17 +37,21 @@ const Profile = () => {
 
   const loadData = async () => {
     try {
-      const [rsvpsRes, signupsRes, eventsRes, actionsRes] = await Promise.all([
+      const [rsvpsRes, signupsRes, eventsRes, actionsRes, myPostsRes, myActionsRes] = await Promise.all([
         eventsAPI.getMyRsvps(),
         actionsAPI.getMySignups(),
         eventsAPI.getAll(),
         actionsAPI.getAll(),
+        postsAPI.getMyPosts().catch(() => ({ data: [] })),
+        actionsAPI.getMyActions().catch(() => ({ data: [] })),
       ]);
       
       setMyRsvps(rsvpsRes.data.event_ids);
       setMySignups(signupsRes.data.action_ids);
       setEvents(eventsRes.data);
       setActions(actionsRes.data);
+      setMyPosts(myPostsRes.data);
+      setMyActions(myActionsRes.data);
     } catch (error) {
       console.error('Error loading profile data:', error);
     } finally {
