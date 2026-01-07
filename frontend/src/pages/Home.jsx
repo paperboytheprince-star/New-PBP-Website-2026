@@ -195,22 +195,24 @@ const Home = () => {
                 className="bg-white rounded-3xl border-2 border-black overflow-hidden card-shadow transition-all duration-300 animate-fadeInUp opacity-0"
                 data-testid={`post-card-${post.id}`}
               >
-                {post.image_url && (
-                  <div className="relative h-48 overflow-hidden">
-                    <img 
-                      src={post.image_url} 
-                      alt={post.title}
-                      className="w-full h-full object-cover"
-                    />
-                    {post.video_url && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                        <div className="w-14 h-14 rounded-full bg-pp-magenta flex items-center justify-center">
-                          <Play className="w-6 h-6 text-white fill-white ml-1" />
-                        </div>
+                <div className="relative h-48 overflow-hidden">
+                  <img 
+                    src={getPostImageUrl(post.image_url)} 
+                    alt={post.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = DEFAULT_POST_IMAGE;
+                    }}
+                  />
+                  {post.video_url && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <div className="w-14 h-14 rounded-full bg-pp-magenta flex items-center justify-center">
+                        <Play className="w-6 h-6 text-white fill-white ml-1" />
                       </div>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
                 <CardContent className="p-6">
                   <h3 className="font-primary font-bold text-xl mb-3">{post.title}</h3>
                   <p className="font-primary text-muted-foreground line-clamp-3 mb-4">
