@@ -1,17 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { postsAPI, apiWithRetry, getErrorMessage, DEFAULT_POST_IMAGE } from '../lib/api';
+import { postsAPI, DEFAULT_POST_IMAGE, FEATURES } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Skeleton } from '../components/ui/skeleton';
 import { Search, ArrowUpDown, ChevronLeft, ChevronRight, FileText, MessageCircle, Calendar, User } from 'lucide-react';
-import { toast } from 'sonner';
 
 // Helper to get post image URL with fallback
 const getPostImageUrl = (imageUrl) => {
   if (!imageUrl) return DEFAULT_POST_IMAGE;
-  if (imageUrl.startsWith('/api/uploads/')) {
+  if (imageUrl.startsWith('/api/uploads/') && process.env.REACT_APP_BACKEND_URL) {
     return `${process.env.REACT_APP_BACKEND_URL}${imageUrl}`;
   }
   return imageUrl;
@@ -41,16 +40,24 @@ const Posts = () => {
         params.search = searchQuery.trim();
       }
       
-      const response = await apiWithRetry(() => postsAPI.getAll(params));
-      setPosts(response.data.posts || []);
-      setPagination(prev => ({
-        ...prev,
-        totalPages: response.data.total_pages || 1,
-        total: response.data.total || 0
-      }));
+      const response = await postsAPI.getAll(params);
+      const data = response.data;
+      
+      // Handle both array and object response formats
+      if (Array.isArray(data)) {
+        setPosts(data);
+        setPagination(prev => ({ ...prev, totalPages: 1, total: data.length }));
+      } else {
+        setPosts(data.posts || []);
+        setPagination(prev => ({
+          ...prev,
+          totalPages: data.total_pages || 1,
+          total: data.total || 0
+        }));
+      }
     } catch (err) {
-      console.error('Error loading posts:', err);
-      toast.error(getErrorMessage(err));
+      console.warn('Using static content:', err.message);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -60,7 +67,6 @@ const Posts = () => {
     loadPosts();
   }, [loadPosts]);
 
-  // Update URL params when filters change
   useEffect(() => {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
@@ -129,7 +135,6 @@ const Posts = () => {
           </div>
         </div>
 
-        {/* Results count */}
         <p className="text-sm text-gray-500 mt-4">
           {pagination.total} {pagination.total === 1 ? 'post' : 'posts'} found
           {searchQuery && ` for "${searchQuery}"`}
@@ -163,49 +168,54 @@ const Posts = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post) => (
-              <Link key={post.id} to={`/posts/${post.id}`}>
-                <Card className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden hover:border-pp-magenta hover:shadow-lg transition-all duration-300 h-full group">
-                  <div className="relative h-48 overflow-hidden">
-                    <img
-                      src={getPostImageUrl(post.image_url)}
-                      alt={post.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = DEFAULT_POST_IMAGE;
-                      }}
-                    />
-                  </div>
-                  <CardContent className="p-5">
-                    <h3 className="font-primary font-bold text-lg mb-2 line-clamp-2 group-hover:text-pp-magenta transition-colors">
-                      {post.title}
-                    </h3>
-                    <p className="font-primary text-gray-600 text-sm line-clamp-3 mb-4">
-                      {post.content}
-                    </p>
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <div className="flex items-center gap-4">
-                        <span className="flex items-center gap-1">
-                          <User className="w-3 h-3" />
-                          {post.author_name}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {new Date(post.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      {post.comment_count > 0 && (
-                        <span className="flex items-center gap-1 text-pp-magenta">
-                          <MessageCircle className="w-3 h-3" />
-                          {post.comment_count}
-                        </span>
-                      )}
+            {posts.map((post) => {
+              const PostWrapper = FEATURES.DYNAMIC_POSTS ? Link : 'div';
+              const wrapperProps = FEATURES.DYNAMIC_POSTS ? { to: `/posts/${post.id}` } : {};
+              
+              return (
+                <PostWrapper key={post.id} {...wrapperProps}>
+                  <Card className="bg-white rounded-2xl border-2 border-gray-200 overflow-hidden hover:border-pp-magenta hover:shadow-lg transition-all duration-300 h-full group">
+                    <div className="relative h-48 overflow-hidden">
+                      <img
+                        src={getPostImageUrl(post.image_url)}
+                        alt={post.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = DEFAULT_POST_IMAGE;
+                        }}
+                      />
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                    <CardContent className="p-5">
+                      <h3 className="font-primary font-bold text-lg mb-2 line-clamp-2 group-hover:text-pp-magenta transition-colors">
+                        {post.title}
+                      </h3>
+                      <p className="font-primary text-gray-600 text-sm line-clamp-3 mb-4">
+                        {post.content}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-gray-500">
+                        <div className="flex items-center gap-4">
+                          <span className="flex items-center gap-1">
+                            <User className="w-3 h-3" />
+                            {post.author_name}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(post.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {FEATURES.COMMENTS_ENABLED && post.comment_count > 0 && (
+                          <span className="flex items-center gap-1 text-pp-magenta">
+                            <MessageCircle className="w-3 h-3" />
+                            {post.comment_count}
+                          </span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </PostWrapper>
+              );
+            })}
           </div>
         )}
 
