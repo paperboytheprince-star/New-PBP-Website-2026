@@ -122,4 +122,25 @@ export const adminAPI = {
   seed: () => api.post('/seed'),
 };
 
+// Notifications
+export const notificationsAPI = {
+  getAll: () => api.get('/notifications'),
+  getUnreadCount: () => api.get('/notifications/unread-count'),
+  markRead: (id) => api.post(`/notifications/${id}/read`),
+  markAllRead: () => api.post('/notifications/read-all'),
+};
+
+// Profile
+export const profileAPI = {
+  get: () => api.get('/profile'),
+  getUser: (userId) => api.get(`/profile/${userId}`),
+  update: (data) => api.put('/profile', data),
+};
+
+// Health
+export const healthAPI = {
+  check: () => api.get('/health'),
+  authStatus: () => api.get('/debug/auth-status'),
+};
+
 export default api;
