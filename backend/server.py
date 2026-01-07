@@ -107,6 +107,10 @@ class PostResponse(BaseModel):
     video_url: Optional[str] = None
     author_id: str
     author_name: str
+    status: str = "approved"  # pending, approved, rejected
+    rejection_reason: Optional[str] = None
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[str] = None
     created_at: str
     updated_at: str
 
@@ -115,6 +119,41 @@ class PostUpdate(BaseModel):
     content: Optional[str] = None
     image_url: Optional[str] = None
     video_url: Optional[str] = None
+
+class PostModeration(BaseModel):
+    action: str  # approve, reject
+    rejection_reason: Optional[str] = None
+
+# Profile Models
+class ProfileUpdate(BaseModel):
+    display_name: Optional[str] = None
+    username: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+class ProfileResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    user_id: str
+    email: str
+    display_name: Optional[str] = None
+    username: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+    is_admin: bool
+    created_at: str
+    updated_at: Optional[str] = None
+
+# Notification Models
+class NotificationResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    recipient_admin_id: str
+    notification_type: str  # new_post, new_action
+    entity_type: str  # post, action
+    entity_id: str
+    message: str
+    created_at: str
+    read_at: Optional[str] = None
 
 # Product Models
 class ProductCreate(BaseModel):
