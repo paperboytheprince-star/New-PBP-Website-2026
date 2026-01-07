@@ -638,9 +638,13 @@ async def get_post(post_id: str):
     return post
 
 @api_router.post("/posts", response_model=PostResponse)
-async def create_post(post_data: PostCreate, user: dict = Depends(get_admin_user)):
+async def create_post(post_data: PostCreate, user: dict = Depends(get_current_user)):
+    """Create a new post (users: pending status, admins: approved)"""
     post_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
+    
+    # Admins' posts are auto-approved, regular users' posts are pending
+    post_status = "approved" if user.get("is_admin") else "pending"
     
     post_doc = {
         "id": post_id,
@@ -650,11 +654,63 @@ async def create_post(post_data: PostCreate, user: dict = Depends(get_admin_user
         "video_url": post_data.video_url,
         "author_id": user["id"],
         "author_name": user["name"],
+        "status": post_status,
+        "rejection_reason": None,
+        "reviewed_by": user["id"] if user.get("is_admin") else None,
+        "reviewed_at": now if user.get("is_admin") else None,
         "created_at": now,
         "updated_at": now
     }
     await db.posts.insert_one(post_doc)
+    
+    # If pending, notify admins
+    if post_status == "pending":
+        await create_admin_notifications("post", post_id, post_data.title, user["name"])
+        await send_admin_notification_emails("post", post_id, post_data.title, user["name"])
+    
     return post_doc
+
+@api_router.post("/posts/{post_id}/moderate")
+async def moderate_post(post_id: str, moderation: PostModeration, user: dict = Depends(get_admin_user)):
+    """Approve or reject a post (admin only)"""
+    post = await db.posts.find_one({"id": post_id}, {"_id": 0})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    if moderation.action == "approve":
+        new_status = "approved"
+    elif moderation.action == "reject":
+        new_status = "rejected"
+        if not moderation.rejection_reason:
+            raise HTTPException(status_code=400, detail="Rejection reason required")
+    else:
+        raise HTTPException(status_code=400, detail="Invalid action. Use 'approve' or 'reject'")
+    
+    update_data = {
+        "status": new_status,
+        "reviewed_by": user["id"],
+        "reviewed_at": now,
+        "updated_at": now
+    }
+    if moderation.rejection_reason:
+        update_data["rejection_reason"] = moderation.rejection_reason
+    
+    await db.posts.update_one({"id": post_id}, {"$set": update_data})
+    
+    # Create audit log
+    await create_audit_log(
+        action=f"post_{moderation.action}",
+        admin_id=user["id"],
+        admin_email=user["email"],
+        target_user_id=post.get("author_id"),
+        details=f"Post '{post['title']}' {moderation.action}d" + (f": {moderation.rejection_reason}" if moderation.rejection_reason else ""),
+        outcome="success"
+    )
+    
+    updated = await db.posts.find_one({"id": post_id}, {"_id": 0})
+    return updated
 
 @api_router.put("/posts/{post_id}", response_model=PostResponse)
 async def update_post(post_id: str, post_data: PostUpdate, user: dict = Depends(get_admin_user)):
