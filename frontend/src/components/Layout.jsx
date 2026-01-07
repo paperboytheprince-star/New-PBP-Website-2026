@@ -183,6 +183,9 @@ const Layout = () => {
       <main>
         <Outlet />
       </main>
+      
+      {/* API Diagnostics (Admin Only) */}
+      <ApiDiagnostics />
 
       {/* Footer */}
       <footer className="bg-black text-white py-12 mt-16">
