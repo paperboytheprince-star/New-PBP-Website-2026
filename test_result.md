@@ -102,129 +102,97 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Build Admin-only User Management feature with password reset, access control, and rotate admin password for paperboytheprince@gmail.com"
+user_problem_statement: "Fix authentication issues, fix fail to load errors, implement complete moderation workflow for posts/actions with admin notifications"
 
 backend:
-  - task: "GET /api/admin/users - List users with search/sort"
+  - task: "POST /api/posts - Create post with status (pending for users, approved for admins)"
     implemented: true
-    working: true
+    working: "NA"
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented with search by email, sorting by multiple fields"
-        - working: true
-          agent: "testing"
-          comment: "✅ TESTED: API endpoint working correctly. Returns user list with proper search and sorting functionality. Tested via direct API calls and frontend integration."
+    needs_retesting: true
 
-  - task: "POST /api/admin/users/:id/reset-password - Generate reset link"
+  - task: "GET /api/posts/pending - Get pending posts for admin review"
     implemented: true
-    working: true
+    working: "NA"
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Implemented with rate limiting, audit logging, secure token generation"
-        - working: true
-          agent: "testing"
-          comment: "✅ TESTED: Password reset link generation working correctly. Successfully generates secure tokens and returns proper reset URLs."
+    needs_retesting: true
 
-  - task: "POST /api/auth/reset-password - Reset password with token"
+  - task: "POST /api/posts/:id/moderate - Approve/reject post"
     implemented: true
-    working: true
+    working: "NA"
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Public endpoint with token validation, password policy, bcrypt hashing"
-        - working: true
-          agent: "testing"
-          comment: "✅ TESTED: Password reset with token working correctly. Validates tokens, enforces password policies, and updates passwords securely."
+    needs_retesting: true
 
-  - task: "Rate limiting on reset actions"
+  - task: "POST /api/actions - Create action with status"
     implemented: true
-    working: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+
+  - task: "GET /api/actions/pending - Get pending actions"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+
+  - task: "POST /api/actions/:id/moderate - Approve/reject action"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+
+  - task: "GET /api/notifications - Admin notifications"
+    implemented: true
+    working: "NA"
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "medium"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "5 requests per 60 second window using in-memory store"
-        - working: true
-          agent: "testing"
-          comment: "✅ TESTED: Rate limiting implemented and working as expected during password reset flow testing."
+    needs_retesting: true
 
-  - task: "Audit logging for password resets"
+  - task: "GET /api/health - Health check endpoint"
     implemented: true
-    working: true
+    working: "NA"
     file: "/app/backend/server.py"
     stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Logs admin_id, target_user, timestamp, outcome to audit_logs collection"
-        - working: true
-          agent: "testing"
-          comment: "✅ TESTED: Audit logging working correctly. Backend logs show proper audit trail for password reset actions."
+    priority: "high"
+    needs_retesting: true
 
 frontend:
-  - task: "Admin Users page at /admin/users"
+  - task: "Admin Moderation page at /admin/moderation"
     implemented: true
-    working: true
-    file: "/app/frontend/src/pages/AdminUsers.jsx"
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminModeration.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Created with user table, search, sorting, and password reset dialog"
-        - working: true
-          agent: "testing"
-          comment: "✅ TESTED: Admin Users page working perfectly. Fixed authentication timing issue by adding authLoading check. All features working: user table display, search by email, sorting by columns, password reset dialog with link generation."
+    needs_retesting: true
 
-  - task: "Password Reset page at /reset-password"
+  - task: "Profile page shows user's submissions with status"
     implemented: true
-    working: true
-    file: "/app/frontend/src/pages/ResetPassword.jsx"
+    working: "NA"
+    file: "/app/frontend/src/pages/Profile.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Created with token validation, password requirements display, success state"
-        - working: true
-          agent: "testing"
-          comment: "✅ TESTED: Reset Password page working correctly. Displays password requirements, validates input, shows success state. Password validation messages display properly."
+    needs_retesting: true
 
-  - task: "Admin access control - 403 for non-admins"
+  - task: "Admin Dashboard shows pending counts"
     implemented: true
-    working: true
-    file: "/app/frontend/src/pages/AdminUsers.jsx"
+    working: "NA"
+    file: "/app/frontend/src/pages/AdminDashboard.jsx"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: "NA"
-          agent: "main"
-          comment: "Checks isAdmin before rendering, redirects non-admins with toast"
-        - working: true
-          agent: "testing"
-          comment: "✅ TESTED: Access control working correctly. Non-admin users are properly redirected away from /admin/users page. Admin users can access the page successfully."
+    needs_retesting: true
 
 metadata:
   created_by: "main_agent"
@@ -233,13 +201,19 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus: []
+  current_focus:
+    - "User login works"
+    - "Admin login works"
+    - "User creates post - status pending"
+    - "Admin sees pending post in moderation queue"
+    - "Admin approves post - becomes visible on feed"
+    - "User creates action - status pending"
+    - "Admin approves action - becomes visible"
+    - "Home/Events/Actions pages load without errors"
   stuck_tasks: []
-  test_all: false
+  test_all: true
   test_priority: "high_first"
 
 agent_communication:
     - agent: "main"
-      message: "Implemented Admin User Management feature. Please test: 1) Login as admin (paperboytheprince@gmail.com / PaperboyAdmin#2025!Secure1), 2) Navigate to /admin/users, 3) Verify user table shows with search and sort, 4) Test password reset flow - generate link and verify it works, 5) Verify non-admin users cannot access /admin/users (should redirect)"
-    - agent: "testing"
-      message: "✅ COMPREHENSIVE TESTING COMPLETED: All Admin User Management features tested and working correctly. Fixed critical authentication timing issue in AdminUsers.jsx and AdminDashboard.jsx by adding authLoading check. All flows tested: 1) Admin login ✅, 2) Admin users page access with full table functionality ✅, 3) Password reset flow with link generation and validation ✅, 4) Access control for non-admin users ✅, 5) Admin dashboard navigation to users page ✅. Feature is ready for production use."
+      message: "Implemented complete moderation workflow. Test flows: 1) Create user account and login, 2) Create a post as user - should be pending, 3) Login as admin (paperboytheprince@gmail.com / PaperboyAdmin#2025!Secure1), 4) Go to /admin/moderation, 5) Approve the post, 6) Verify post appears on home feed. Same for actions."
