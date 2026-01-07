@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
+import AdminModeration from "./pages/AdminModeration";
 import Profile from "./pages/Profile";
 import ResetPassword from "./pages/ResetPassword";
 import "./App.css";
@@ -44,6 +45,7 @@ function App() {
           <Route path="/admin" element={<Navigate to="/login" replace />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/moderation" element={<AdminModeration />} />
         </Routes>
         <Toaster position="top-right" richColors />
       </BrowserRouter>
