@@ -190,44 +190,48 @@ const Home = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 stagger-children">
             {posts.map((post) => (
-              <Card 
+              <Link 
                 key={post.id} 
-                className="bg-white rounded-3xl border-2 border-black overflow-hidden card-shadow transition-all duration-300 animate-fadeInUp opacity-0"
+                to={`/posts/${post.id}`}
                 data-testid={`post-card-${post.id}`}
               >
-                <div className="relative h-48 overflow-hidden">
-                  <img 
-                    src={getPostImageUrl(post.image_url)} 
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = DEFAULT_POST_IMAGE;
-                    }}
-                  />
-                  {post.video_url && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                      <div className="w-14 h-14 rounded-full bg-pp-magenta flex items-center justify-center">
-                        <Play className="w-6 h-6 text-white fill-white ml-1" />
+                <Card 
+                  className="bg-white rounded-3xl border-2 border-black overflow-hidden card-shadow transition-all duration-300 animate-fadeInUp opacity-0 hover:border-pp-magenta hover:shadow-lg group h-full"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <img 
+                      src={getPostImageUrl(post.image_url)} 
+                      alt={post.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = DEFAULT_POST_IMAGE;
+                      }}
+                    />
+                    {post.video_url && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <div className="w-14 h-14 rounded-full bg-pp-magenta flex items-center justify-center">
+                          <Play className="w-6 h-6 text-white fill-white ml-1" />
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-                <CardContent className="p-6">
-                  <h3 className="font-primary font-bold text-xl mb-3">{post.title}</h3>
-                  <p className="font-primary text-muted-foreground line-clamp-3 mb-4">
-                    {post.content}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="font-primary text-sm text-pp-magenta font-semibold">
-                      {post.author_name}
-                    </span>
-                    <span className="font-primary text-xs text-muted-foreground">
-                      {new Date(post.created_at).toLocaleDateString()}
-                    </span>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+                  <CardContent className="p-6">
+                    <h3 className="font-primary font-bold text-xl mb-3 group-hover:text-pp-magenta transition-colors">{post.title}</h3>
+                    <p className="font-primary text-muted-foreground line-clamp-3 mb-4">
+                      {post.content}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="font-primary text-sm text-pp-magenta font-semibold">
+                        {post.author_name}
+                      </span>
+                      <span className="font-primary text-xs text-muted-foreground">
+                        {new Date(post.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}
