@@ -47,6 +47,34 @@ app = FastAPI(title="Paperboy Prince Platform API")
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer()
 
+# ============ REQUEST LOGGING MIDDLEWARE ============
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    request_id = str(uuid.uuid4())[:8]
+    start_time = time.time()
+    
+    # Log request
+    logger.info(f"[{request_id}] {request.method} {request.url.path} - Started")
+    
+    try:
+        response = await call_next(request)
+        duration = time.time() - start_time
+        logger.info(f"[{request_id}] {request.method} {request.url.path} - {response.status_code} ({duration:.3f}s)")
+        response.headers["X-Request-ID"] = request_id
+        return response
+    except Exception as e:
+        duration = time.time() - start_time
+        logger.error(f"[{request_id}] {request.method} {request.url.path} - ERROR: {str(e)} ({duration:.3f}s)")
+        logger.error(traceback.format_exc())
+        return JSONResponse(
+            status_code=500,
+            content={
+                "detail": "Internal server error",
+                "request_id": request_id,
+            },
+            headers={"X-Request-ID": request_id}
+        )
+
 # ============ MODELS ============
 
 # User Models
