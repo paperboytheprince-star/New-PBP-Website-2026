@@ -37,6 +37,8 @@ function App() {
             <Route path="about" element={<About />} />
             <Route path="films" element={<Films />} />
             <Route path="music" element={<Music />} />
+            <Route path="posts" element={<Posts />} />
+            <Route path="posts/:id" element={<PostDetail />} />
             <Route path="profile" element={<Profile />} />
           </Route>
           <Route path="/shop" element={<ShopRedirect />} />
