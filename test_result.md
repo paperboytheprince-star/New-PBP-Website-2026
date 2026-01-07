@@ -116,6 +116,9 @@ backend:
         - working: true
           agent: "main"
           comment: "Implemented with search, pagination, and sort. Tested via curl - returns posts array with total, page, limit, total_pages."
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TESTING PASSED: Pagination (page=1, limit=3), search (search=City), and sort (sort=newest, sort=oldest) all working correctly. Returns proper pagination metadata and filters results appropriately."
 
   - task: "GET /api/posts/latest - Latest approved posts for homepage"
     implemented: true
@@ -128,6 +131,9 @@ backend:
         - working: true
           agent: "main"
           comment: "Returns array of latest approved posts with comment_count."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: Returns array of latest approved posts with comment_count field. Found 2 approved posts in database as expected."
 
   - task: "GET /api/posts/{post_id} - Single post by ID"
     implemented: true
@@ -140,6 +146,9 @@ backend:
         - working: true
           agent: "main"
           comment: "Returns post with comment_count. Only returns approved posts to public."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: Single post retrieval working correctly. Returns post with comment_count field. Only approved posts accessible to public."
 
   - task: "GET /api/posts/{post_id}/comments - Get comments for post"
     implemented: true
@@ -152,6 +161,9 @@ backend:
         - working: true
           agent: "main"
           comment: "Returns list of approved comments. Public endpoint."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: Comments retrieval working correctly. Returns array of approved comments with all required fields (id, author_name, body, created_at)."
 
   - task: "POST /api/posts/{post_id}/comments - Create comment (auth required)"
     implemented: true
@@ -164,6 +176,9 @@ backend:
         - working: true
           agent: "main"
           comment: "Creates comment with 15-second rate limit. Validated via curl - rate limit working correctly."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: Comment creation requires authentication and works correctly. Rate limiting (15 seconds between comments) is properly enforced with appropriate error messages."
 
   - task: "DELETE /api/comments/{comment_id} - Delete comment (admin/author)"
     implemented: true
@@ -176,6 +191,9 @@ backend:
         - working: true
           agent: "main"
           comment: "Admin or comment author can delete. Tested via curl."
+        - working: true
+          agent: "testing"
+          comment: "✅ VERIFIED: Comment deletion permissions working correctly. Admin can delete any comment, authors can delete their own comments, non-author/non-admin users are properly blocked with authorization error."
 
 frontend:
   - task: "Home page - Clickable post cards with View All Posts link"
