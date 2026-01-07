@@ -663,6 +663,70 @@ async def reset_password_with_token(reset_data: PasswordResetRequest):
     
     return {"message": "Password reset successfully. You can now log in with your new password."}
 
+# ============ IMAGE UPLOAD ROUTES ============
+
+async def process_and_save_image(file: UploadFile, max_dimension: int = MAX_IMAGE_DIMENSION) -> str:
+    """Process, resize, and save an uploaded image. Returns the public URL."""
+    # Validate file type
+    if file.content_type not in ALLOWED_IMAGE_TYPES:
+        raise HTTPException(status_code=400, detail=f"Invalid file type. Allowed: JPG, PNG, WebP")
+    
+    # Read file content
+    content = await file.read()
+    
+    # Validate file size
+    if len(content) > MAX_IMAGE_SIZE:
+        raise HTTPException(status_code=400, detail=f"File too large. Max size: {MAX_IMAGE_SIZE // (1024*1024)}MB")
+    
+    try:
+        # Open image with PIL
+        img = Image.open(io.BytesIO(content))
+        
+        # Verify it's actually an image
+        img.verify()
+        img = Image.open(io.BytesIO(content))  # Re-open after verify
+        
+        # Convert to RGB if necessary (for PNG with transparency)
+        if img.mode in ('RGBA', 'P'):
+            img = img.convert('RGB')
+        
+        # Resize if too large
+        if img.width > max_dimension or img.height > max_dimension:
+            ratio = min(max_dimension / img.width, max_dimension / img.height)
+            new_size = (int(img.width * ratio), int(img.height * ratio))
+            img = img.resize(new_size, Image.Resampling.LANCZOS)
+        
+        # Generate unique filename
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}.jpg"
+        filepath = UPLOAD_DIR / filename
+        
+        # Save as JPEG with optimization
+        img.save(filepath, 'JPEG', quality=85, optimize=True)
+        
+        logger.info(f"Saved image: {filename} ({img.width}x{img.height})")
+        
+        # Return the public URL
+        return f"/api/uploads/{filename}"
+        
+    except Exception as e:
+        logger.error(f"Image processing error: {str(e)}")
+        raise HTTPException(status_code=400, detail="Invalid image file")
+
+@api_router.post("/upload/image")
+async def upload_image(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
+    """Upload an image file (authenticated users only)"""
+    url = await process_and_save_image(file)
+    return {"url": url, "filename": url.split('/')[-1]}
+
+@api_router.get("/uploads/{filename}")
+async def get_uploaded_image(filename: str):
+    """Serve an uploaded image"""
+    filepath = UPLOAD_DIR / filename
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(filepath, media_type="image/jpeg")
+
 # ============ POST ROUTES ============
 
 @api_router.get("/posts", response_model=List[PostResponse])
