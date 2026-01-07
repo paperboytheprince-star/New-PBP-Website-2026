@@ -1170,8 +1170,12 @@ class ModerationWorkflowTester:
             return True
 
 def main():
+    """Main function to run Posts Experience tests"""
     tester = ModerationWorkflowTester()
-    success = tester.run_moderation_tests()
+    
+    # Run the Posts Experience tests as requested
+    success = tester.run_posts_experience_tests()
+    
     return 0 if success else 1
 
 if __name__ == "__main__":
