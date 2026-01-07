@@ -618,40 +618,75 @@ class ModerationWorkflowTester:
         """Clean up test data created during testing"""
         print("\n🧹 Cleaning up test data...")
         
-        if not self.token:
+        if not self.admin_token:
             return
             
-        # Delete test post if created
+        # Delete test posts if created
         if self.created_post_id:
-            data, error = self.make_request('DELETE', f'posts/{self.created_post_id}', expected_status=200)
+            data, error = self.make_request('DELETE', f'posts/{self.created_post_id}', 
+                                          expected_status=200, token=self.admin_token)
             if not error:
                 print(f"   ✅ Deleted test post: {self.created_post_id}")
             else:
                 print(f"   ❌ Failed to delete test post: {error}")
                 
-        # Delete test event if created
-        if self.created_event_id:
-            data, error = self.make_request('DELETE', f'events/{self.created_event_id}', expected_status=200)
+        if self.rejected_post_id:
+            data, error = self.make_request('DELETE', f'posts/{self.rejected_post_id}', 
+                                          expected_status=200, token=self.admin_token)
             if not error:
-                print(f"   ✅ Deleted test event: {self.created_event_id}")
+                print(f"   ✅ Deleted rejected post: {self.rejected_post_id}")
             else:
-                print(f"   ❌ Failed to delete test event: {error}")
+                print(f"   ❌ Failed to delete rejected post: {error}")
+                
+        # Delete test action if created
+        if self.created_action_id:
+            data, error = self.make_request('DELETE', f'actions/{self.created_action_id}', 
+                                          expected_status=200, token=self.admin_token)
+            if not error:
+                print(f"   ✅ Deleted test action: {self.created_action_id}")
+            else:
+                print(f"   ❌ Failed to delete test action: {error}")
 
-    def run_production_tests(self):
-        """Run all production launch tests"""
-        print("🚀 PRODUCTION LAUNCH TESTING")
-        print("=" * 50)
-        print("Testing database cleanup, admin functionality, and production readiness...")
+    def run_moderation_tests(self):
+        """Run all moderation workflow tests"""
+        print("🔄 MODERATION WORKFLOW TESTING")
+        print("=" * 60)
+        print("Testing complete moderation workflow for posts and actions...")
         
-        # Test sequence for production launch verification
+        # Test sequence for moderation workflow verification
         tests = [
-            ("Admin Login", self.test_admin_login),
-            ("Empty Posts (No Demo Data)", self.test_empty_posts),
-            ("Empty Events (No Demo Data)", self.test_empty_events),
-            ("Admin Can Create Post", self.test_create_post),
-            ("Admin Can Create Event", self.test_create_event),
-            ("Post Appears in Feed", self.test_post_appears_in_feed),
-            ("Admin Stats Access", self.test_admin_stats),
+            # Authentication Tests
+            ("1. User Registration", self.test_user_registration),
+            ("2. User Login", self.test_user_login),
+            ("3. Admin Login", self.test_admin_login),
+            
+            # Post Moderation Tests
+            ("4. User Creates Post (Pending)", self.test_user_creates_post_pending),
+            ("5. Pending Post Not in Public Feed", self.test_pending_post_not_in_public_feed),
+            ("6. User Sees Own Pending Post", self.test_user_sees_own_pending_post),
+            ("7. Admin Sees Pending Posts", self.test_admin_sees_pending_post),
+            ("8. Admin Approves Post", self.test_admin_approves_post),
+            ("9. Approved Post in Public Feed", self.test_approved_post_in_public_feed),
+            
+            # Action Moderation Tests
+            ("10. User Creates Action (Pending)", self.test_user_creates_action_pending),
+            ("11. Pending Action Not in Public Feed", self.test_pending_action_not_in_public_feed),
+            ("12. User Sees Own Pending Action", self.test_user_sees_own_pending_action),
+            ("13. Admin Sees Pending Actions", self.test_admin_sees_pending_action),
+            ("14. Admin Approves Action", self.test_admin_approves_action),
+            ("15. Approved Action in Public Feed", self.test_approved_action_in_public_feed),
+            
+            # Rejection Flow Tests
+            ("16. Post Rejection Flow", self.test_rejection_flow),
+            ("17. User Sees Rejected Post", self.test_user_sees_rejected_post),
+            
+            # Notification Tests
+            ("18. Admin Notifications", self.test_admin_notifications),
+            ("19. Unread Notification Count", self.test_unread_notification_count),
+            
+            # Health and Password Tests
+            ("20. Health Check", self.test_health_check),
+            ("21. Password Change", self.test_change_password),
         ]
         
         for test_name, test_func in tests:
@@ -664,8 +699,8 @@ class ModerationWorkflowTester:
         self.cleanup_test_data()
         
         # Print final results
-        print("\n" + "=" * 50)
-        print(f"📊 PRODUCTION LAUNCH TEST RESULTS")
+        print("\n" + "=" * 60)
+        print(f"📊 MODERATION WORKFLOW TEST RESULTS")
         print(f"Tests Passed: {self.tests_passed}/{self.tests_run}")
         
         if self.failed_tests:
@@ -674,15 +709,19 @@ class ModerationWorkflowTester:
                 print(f"  • {failure['test']}: {failure['details']}")
             return False
         else:
-            print(f"\n✅ ALL PRODUCTION LAUNCH TESTS PASSED!")
-            print(f"✅ Database is clean (no demo data)")
-            print(f"✅ Admin functionality working")
-            print(f"✅ Ready for production launch")
+            print(f"\n✅ ALL MODERATION WORKFLOW TESTS PASSED!")
+            print(f"✅ User registration and login working")
+            print(f"✅ Admin authentication working")
+            print(f"✅ Post moderation workflow complete")
+            print(f"✅ Action moderation workflow complete")
+            print(f"✅ Rejection flow working")
+            print(f"✅ Admin notifications working")
+            print(f"✅ Health check and password change working")
             return True
 
 def main():
-    tester = ProductionLaunchTester()
-    success = tester.run_production_tests()
+    tester = ModerationWorkflowTester()
+    success = tester.run_moderation_tests()
     return 0 if success else 1
 
 if __name__ == "__main__":
