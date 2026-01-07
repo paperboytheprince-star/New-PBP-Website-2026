@@ -1308,9 +1308,11 @@ async def get_auth_status(user: dict = Depends(get_admin_user)):
 async def get_admin_stats(user: dict = Depends(get_admin_user)):
     users_count = await db.users.count_documents({})
     posts_count = await db.posts.count_documents({})
+    pending_posts = await db.posts.count_documents({"status": "pending"})
     products_count = await db.products.count_documents({})
     events_count = await db.events.count_documents({})
     actions_count = await db.actions.count_documents({})
+    pending_actions = await db.actions.count_documents({"status": "pending"})
     rsvps_count = await db.rsvps.count_documents({})
     signups_count = await db.action_participants.count_documents({})
     notify_count = await db.notify_emails.count_documents({})
@@ -1318,9 +1320,11 @@ async def get_admin_stats(user: dict = Depends(get_admin_user)):
     return {
         "users": users_count,
         "posts": posts_count,
+        "pending_posts": pending_posts,
         "products": products_count,
         "events": events_count,
         "actions": actions_count,
+        "pending_actions": pending_actions,
         "rsvps": rsvps_count,
         "action_signups": signups_count,
         "notify_subscribers": notify_count
