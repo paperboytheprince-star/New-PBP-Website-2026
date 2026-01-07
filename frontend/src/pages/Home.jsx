@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { postsAPI, apiWithRetry, getErrorMessage, DEFAULT_POST_IMAGE } from '../lib/api';
+import { postsAPI, DEFAULT_POST_IMAGE, FEATURES } from '../lib/api';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Skeleton } from '../components/ui/skeleton';
-import { ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign, FileText, AlertCircle, RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
+import { ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign, FileText } from 'lucide-react';
 
 // Helper to get post image URL with fallback
 const getPostImageUrl = (imageUrl) => {
   if (!imageUrl) return DEFAULT_POST_IMAGE;
   // Handle relative URLs from our upload API
-  if (imageUrl.startsWith('/api/uploads/')) {
+  if (imageUrl.startsWith('/api/uploads/') && process.env.REACT_APP_BACKEND_URL) {
     return `${process.env.REACT_APP_BACKEND_URL}${imageUrl}`;
   }
   return imageUrl;
@@ -20,17 +19,15 @@ const getPostImageUrl = (imageUrl) => {
 const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const heroImages = [
     'https://customer-assets.emergentagent.com/job_prince-engage/artifacts/wdi4o708_IMG_5791_Original.jpg',
-    'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1600', // Brooklyn Bridge
+    'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1600',
   ];
 
   useEffect(() => {
     loadData();
-    // Hero slideshow interval
     const slideInterval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
     }, 6000);
@@ -39,23 +36,12 @@ const Home = () => {
 
   const loadData = async () => {
     setLoading(true);
-    setError(null);
     try {
-      // Use retry logic for transient network failures - get latest posts for homepage
-      const response = await apiWithRetry(() => postsAPI.getLatest());
+      const response = await postsAPI.getLatest();
       setPosts(response.data || []);
     } catch (err) {
-      console.error('Error loading posts:', err);
-      const errorMsg = getErrorMessage(err);
-      setError({
-        message: errorMsg,
-        status: err.apiStatus || 0,
-        isRetryable: err.isNetworkError || err.isServerError,
-      });
-      // Only show toast for actual errors, not empty results
-      if (err.apiStatus !== 200) {
-        toast.error(errorMsg);
-      }
+      console.warn('Using static content:', err.message);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -65,7 +51,6 @@ const Home = () => {
     <div className="noise-overlay">
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-        {/* Slideshow Background */}
         {heroImages.map((img, idx) => (
           <div 
             key={idx}
@@ -79,10 +64,8 @@ const Home = () => {
             }}
           />
         ))}
-        {/* Pink overlay filter */}
         <div className="absolute inset-0 bg-gradient-to-br from-pp-magenta/80 via-pp-pink/70 to-pp-magenta/80" />
         
-        {/* Slide indicators */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 z-20">
           {heroImages.map((_, idx) => (
             <button
@@ -171,10 +154,12 @@ const Home = () => {
           <h2 className="font-campaign text-3xl md:text-4xl tracking-wider text-pp-magenta" data-testid="feed-title">
             LATEST POSTS
           </h2>
-          <Link to="/posts" className="hidden md:flex items-center gap-2 text-pp-magenta hover:text-pp-magenta/80 font-primary font-semibold transition-colors">
-            View All Posts
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          {FEATURES.DYNAMIC_POSTS && posts.length > 0 && (
+            <Link to="/posts" className="hidden md:flex items-center gap-2 text-pp-magenta hover:text-pp-magenta/80 font-primary font-semibold transition-colors">
+              View All Posts
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          )}
         </div>
 
         {loading ? (
@@ -190,94 +175,72 @@ const Home = () => {
               </Card>
             ))}
           </div>
-        ) : (
+        ) : posts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 stagger-children">
-            {posts.map((post) => (
-              <Link 
-                key={post.id} 
-                to={`/posts/${post.id}`}
-                data-testid={`post-card-${post.id}`}
-              >
-                <Card 
-                  className="bg-white rounded-3xl border-2 border-black overflow-hidden card-shadow transition-all duration-300 animate-fadeInUp opacity-0 hover:border-pp-magenta hover:shadow-lg group h-full"
+            {posts.map((post) => {
+              const PostWrapper = FEATURES.DYNAMIC_POSTS ? Link : 'div';
+              const wrapperProps = FEATURES.DYNAMIC_POSTS ? { to: `/posts/${post.id}` } : {};
+              
+              return (
+                <PostWrapper 
+                  key={post.id} 
+                  {...wrapperProps}
+                  data-testid={`post-card-${post.id}`}
                 >
-                  <div className="relative h-48 overflow-hidden">
-                    <img 
-                      src={getPostImageUrl(post.image_url)} 
-                      alt={post.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = DEFAULT_POST_IMAGE;
-                      }}
-                    />
-                    {post.video_url && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                        <div className="w-14 h-14 rounded-full bg-pp-magenta flex items-center justify-center">
-                          <Play className="w-6 h-6 text-white fill-white ml-1" />
+                  <Card 
+                    className="bg-white rounded-3xl border-2 border-black overflow-hidden card-shadow transition-all duration-300 animate-fadeInUp opacity-0 hover:border-pp-magenta hover:shadow-lg group h-full"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <img 
+                        src={getPostImageUrl(post.image_url)} 
+                        alt={post.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = DEFAULT_POST_IMAGE;
+                        }}
+                      />
+                      {post.video_url && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <div className="w-14 h-14 rounded-full bg-pp-magenta flex items-center justify-center">
+                            <Play className="w-6 h-6 text-white fill-white ml-1" />
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-6">
-                    <h3 className="font-primary font-bold text-xl mb-3 group-hover:text-pp-magenta transition-colors">{post.title}</h3>
-                    <p className="font-primary text-muted-foreground line-clamp-3 mb-4">
-                      {post.content}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="font-primary text-sm text-pp-magenta font-semibold">
-                        {post.author_name}
-                      </span>
-                      <span className="font-primary text-xs text-muted-foreground">
-                        {new Date(post.created_at).toLocaleDateString()}
-                      </span>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                    <CardContent className="p-6">
+                      <h3 className="font-primary font-bold text-xl mb-3 group-hover:text-pp-magenta transition-colors">{post.title}</h3>
+                      <p className="font-primary text-muted-foreground line-clamp-3 mb-4">
+                        {post.content}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="font-primary text-sm text-pp-magenta font-semibold">
+                          {post.author_name}
+                        </span>
+                        <span className="font-primary text-xs text-muted-foreground">
+                          {new Date(post.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </PostWrapper>
+              );
+            })}
           </div>
-        )}
-
-        {posts.length === 0 && !loading && !error && (
+        ) : (
           <div className="text-center py-12 px-4 bg-muted rounded-3xl border-2 border-dashed border-gray-300">
             <FileText className="w-16 h-16 text-pp-pink mx-auto mb-4" />
             <p className="font-primary text-lg text-muted-foreground mb-2">
-              No updates yet.
+              Updates coming soon!
             </p>
             <p className="font-primary text-sm text-muted-foreground">
-              Admins can create the first post.
+              Check back for the latest news and community updates.
             </p>
-          </div>
-        )}
-        
-        {error && (
-          <div className="text-center py-12 px-4 bg-red-50 rounded-3xl border-2 border-red-200">
-            <AlertCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-            <p className="font-primary text-lg text-red-600 mb-2">
-              {error.message}
-            </p>
-            <p className="font-primary text-sm text-muted-foreground mb-4">
-              {error.status === 401 && 'Please log in to continue'}
-              {error.status === 403 && 'You do not have permission to view this content'}
-              {error.status >= 500 && 'Our servers are having issues. Please try again.'}
-              {error.status === 0 && 'Check your internet connection'}
-            </p>
-            {error.isRetryable && (
-              <Button 
-                onClick={loadData}
-                variant="outline"
-                className="rounded-full border-2 border-red-300 text-red-600 hover:bg-red-100"
-              >
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Try Again
-              </Button>
-            )}
           </div>
         )}
 
-        {/* View All Posts Button - Mobile and Desktop */}
-        {posts.length > 0 && !loading && (
+        {/* View All Posts Button */}
+        {FEATURES.DYNAMIC_POSTS && posts.length > 0 && (
           <div className="text-center mt-8">
             <Link to="/posts">
               <Button className="rounded-full bg-pp-magenta text-white font-bold px-8 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black">
