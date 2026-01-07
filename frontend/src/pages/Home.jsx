@@ -41,9 +41,9 @@ const Home = () => {
     setLoading(true);
     setError(null);
     try {
-      // Use retry logic for transient network failures
-      const response = await apiWithRetry(() => postsAPI.getAll());
-      setPosts(response.data);
+      // Use retry logic for transient network failures - get latest posts for homepage
+      const response = await apiWithRetry(() => postsAPI.getLatest());
+      setPosts(response.data || []);
     } catch (err) {
       console.error('Error loading posts:', err);
       const errorMsg = getErrorMessage(err);
