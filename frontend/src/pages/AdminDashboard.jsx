@@ -108,6 +108,49 @@ const AdminDashboard = () => {
   // Post CRUD
   const [postForm, setPostForm] = useState({ title: '', content: '', image_url: '', video_url: '' });
   
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Client-side validation
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload JPG, PNG, or WebP.');
+      return;
+    }
+    
+    if (file.size > maxSize) {
+      toast.error('File too large. Maximum size is 5MB.');
+      return;
+    }
+    
+    // Show preview immediately
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target.result);
+    reader.readAsDataURL(file);
+    
+    // Upload to server
+    setUploadingImage(true);
+    try {
+      const response = await uploadAPI.uploadImage(file);
+      setPostForm({ ...postForm, image_url: response.data.url });
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload image');
+      setImagePreview(null);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+  
+  const clearImage = () => {
+    setPostForm({ ...postForm, image_url: '' });
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+  
   const savePost = async () => {
     try {
       if (editItem) {
@@ -120,6 +163,7 @@ const AdminDashboard = () => {
       setDialogOpen(false);
       setEditItem(null);
       setPostForm({ title: '', content: '', image_url: '', video_url: '' });
+      setImagePreview(null);
       loadAllData();
     } catch (error) {
       toast.error('Failed to save post');
