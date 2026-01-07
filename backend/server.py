@@ -177,6 +177,24 @@ class PostModeration(BaseModel):
     action: str  # approve, reject
     rejection_reason: Optional[str] = None
 
+# Comment Models
+class CommentCreate(BaseModel):
+    body: str = Field(..., min_length=1, max_length=2000)
+
+class CommentResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    post_id: str
+    author_id: str
+    author_name: str
+    body: str
+    status: str = "approved"  # pending, approved, rejected (optional moderation)
+    created_at: str
+
+class CommentUpdate(BaseModel):
+    body: Optional[str] = Field(None, min_length=1, max_length=2000)
+    status: Optional[str] = None
+
 # Profile Models
 class ProfileUpdate(BaseModel):
     display_name: Optional[str] = None
