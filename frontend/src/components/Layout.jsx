@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { Menu, User, LogOut, Settings, Heart } from 'lucide-react';
+import ApiDiagnostics from './ApiDiagnostics';
 
 const navLinks = [
   { path: '/', label: 'HOME', external: false },
