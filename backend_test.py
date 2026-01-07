@@ -41,20 +41,24 @@ class ModerationWorkflowTester:
             self.failed_tests.append({"test": test_name, "details": details})
             print(f"❌ {test_name} - {details}")
 
-    def make_request(self, method, endpoint, data=None, expected_status=None):
+    def make_request(self, method, endpoint, data=None, expected_status=None, token=None):
         """Make API request with proper headers"""
         url = f"{self.api_base}/{endpoint}"
         headers = {'Content-Type': 'application/json'}
         
-        # Add auth token if available
-        if self.token:
-            headers['Authorization'] = f'Bearer {self.token}'
+        # Add auth token if provided or use admin token as default
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
+        elif self.admin_token:
+            headers['Authorization'] = f'Bearer {self.admin_token}'
 
         try:
             if method == 'GET':
                 response = requests.get(url, headers=headers, timeout=10)
             elif method == 'POST':
                 response = requests.post(url, json=data, headers=headers, timeout=10)
+            elif method == 'PUT':
+                response = requests.put(url, json=data, headers=headers, timeout=10)
             elif method == 'DELETE':
                 response = requests.delete(url, headers=headers, timeout=10)
             else:
@@ -71,6 +75,56 @@ class ModerationWorkflowTester:
         except Exception as e:
             return None, str(e)
 
+    # ============ AUTHENTICATION TESTS ============
+
+    def test_user_registration(self):
+        """Test user registration"""
+        print("\n👤 Testing User Registration...")
+        
+        data, error = self.make_request('POST', 'auth/register', {
+            'email': self.test_user_email,
+            'password': self.test_user_password,
+            'name': self.test_user_name
+        }, expected_status=200, token=None)
+        
+        if error:
+            self.log_result("User Registration", False, error)
+            return False
+            
+        if data and 'token' in data and 'user' in data:
+            self.user_token = data['token']
+            self.user_id = data['user']['id']
+            is_admin = data['user'].get('is_admin', False)
+            if is_admin:
+                self.log_result("User Registration", False, "New user should not be admin")
+                return False
+            self.log_result("User Registration", True, f"User created: {self.user_id}")
+            return True
+        else:
+            self.log_result("User Registration", False, "Invalid registration response")
+            return False
+
+    def test_user_login(self):
+        """Test user login"""
+        print("\n🔐 Testing User Login...")
+        
+        data, error = self.make_request('POST', 'auth/login', {
+            'email': self.test_user_email,
+            'password': self.test_user_password
+        }, expected_status=200, token=None)
+        
+        if error:
+            self.log_result("User Login", False, error)
+            return False
+            
+        if data and 'token' in data:
+            self.user_token = data['token']
+            self.log_result("User Login", True)
+            return True
+        else:
+            self.log_result("User Login", False, "No token in response")
+            return False
+
     def test_admin_login(self):
         """Test admin login functionality"""
         print("\n🔐 Testing Admin Login...")
@@ -78,156 +132,486 @@ class ModerationWorkflowTester:
         data, error = self.make_request('POST', 'auth/login', {
             'email': self.admin_email,
             'password': self.admin_password
-        }, expected_status=200)
+        }, expected_status=200, token=None)
         
         if error:
             self.log_result("Admin Login", False, error)
             return False
             
-        if data and 'token' in data:
-            self.token = data['token']
+        if data and 'token' in data and 'user' in data:
+            self.admin_token = data['token']
+            is_admin = data['user'].get('is_admin', False)
+            if not is_admin:
+                self.log_result("Admin Login", False, "Admin user should have is_admin=true")
+                return False
             self.log_result("Admin Login", True)
             return True
         else:
             self.log_result("Admin Login", False, "No token in response")
             return False
 
-    def test_empty_posts(self):
-        """Test that posts collection is empty (no demo data)"""
-        print("\n📝 Testing Empty Posts State...")
-        
-        data, error = self.make_request('GET', 'posts', expected_status=200)
-        
-        if error:
-            self.log_result("Empty Posts Check", False, error)
-            return False
-            
-        posts_count = len(data) if data else 0
-        if posts_count == 0:
-            self.log_result("Empty Posts Check", True, "Database clean - no demo posts")
-            return True
-        else:
-            self.log_result("Empty Posts Check", False, f"Found {posts_count} posts - should be empty for production")
-            return False
+    # ============ POST MODERATION TESTS ============
 
-    def test_empty_events(self):
-        """Test that events collection is empty (no demo data)"""
-        print("\n📅 Testing Empty Events State...")
+    def test_user_creates_post_pending(self):
+        """Test user creates post with pending status"""
+        print("\n📝 Testing User Creates Post (Pending)...")
         
-        data, error = self.make_request('GET', 'events', expected_status=200)
-        
-        if error:
-            self.log_result("Empty Events Check", False, error)
-            return False
-            
-        events_count = len(data) if data else 0
-        if events_count == 0:
-            self.log_result("Empty Events Check", True, "Database clean - no demo events")
-            return True
-        else:
-            self.log_result("Empty Events Check", False, f"Found {events_count} events - should be empty for production")
-            return False
-
-    def test_create_post(self):
-        """Test admin can create a post"""
-        print("\n✍️ Testing Post Creation...")
-        
-        if not self.token:
-            self.log_result("Create Post", False, "No admin token available")
+        if not self.user_token:
+            self.log_result("User Creates Post", False, "No user token available")
             return False
             
         post_data = {
-            "title": "Welcome to Paperboy Prince 2026!",
-            "content": "This is our first official post. Join us in building a better future for all.",
-            "image_url": "https://customer-assets.emergentagent.com/job_prince-engage/artifacts/wdi4o708_IMG_5791_Original.jpg"
+            "title": "Community Garden Initiative",
+            "content": "I propose we start a community garden in our neighborhood to promote sustainable living and bring people together."
         }
         
-        data, error = self.make_request('POST', 'posts', post_data, expected_status=200)
+        data, error = self.make_request('POST', 'posts', post_data, expected_status=200, token=self.user_token)
         
         if error:
-            self.log_result("Create Post", False, error)
+            self.log_result("User Creates Post", False, error)
             return False
             
-        if data and 'id' in data:
+        if data and 'id' in data and data.get('status') == 'pending':
             self.created_post_id = data['id']
-            self.log_result("Create Post", True, f"Post created with ID: {self.created_post_id}")
+            self.log_result("User Creates Post", True, f"Post created with pending status: {self.created_post_id}")
             return True
         else:
-            self.log_result("Create Post", False, "No post ID in response")
+            self.log_result("User Creates Post", False, f"Expected pending status, got: {data.get('status') if data else 'no data'}")
             return False
 
-    def test_create_event(self):
-        """Test admin can create an event"""
-        print("\n🎉 Testing Event Creation...")
+    def test_pending_post_not_in_public_feed(self):
+        """Test pending post does not appear in public feed"""
+        print("\n🚫 Testing Pending Post Not in Public Feed...")
         
-        if not self.token:
-            self.log_result("Create Event", False, "No admin token available")
-            return False
-            
-        event_data = {
-            "title": "Community Town Hall",
-            "description": "Join us for our first community town hall meeting to discuss our vision for 2026.",
-            "date": "2025-02-15T18:00:00Z",
-            "location": "Brooklyn Community Center, 123 Main St",
-            "image_url": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800"
-        }
-        
-        data, error = self.make_request('POST', 'events', event_data, expected_status=200)
+        data, error = self.make_request('GET', 'posts', expected_status=200, token=None)
         
         if error:
-            self.log_result("Create Event", False, error)
+            self.log_result("Pending Post Not in Public Feed", False, error)
             return False
             
-        if data and 'id' in data:
-            self.created_event_id = data['id']
-            self.log_result("Create Event", True, f"Event created with ID: {self.created_event_id}")
-            return True
-        else:
-            self.log_result("Create Event", False, "No event ID in response")
-            return False
+        posts = data if data else []
+        for post in posts:
+            if post.get('id') == self.created_post_id:
+                self.log_result("Pending Post Not in Public Feed", False, "Pending post found in public feed")
+                return False
+        
+        self.log_result("Pending Post Not in Public Feed", True, "Pending post correctly hidden from public")
+        return True
 
-    def test_post_appears_in_feed(self):
-        """Test that created post appears in posts feed"""
-        print("\n📰 Testing Post Feed...")
+    def test_user_sees_own_pending_post(self):
+        """Test user can see their own pending post"""
+        print("\n👁️ Testing User Sees Own Pending Post...")
         
-        data, error = self.make_request('GET', 'posts', expected_status=200)
-        
-        if error:
-            self.log_result("Post Appears in Feed", False, error)
+        if not self.user_token:
+            self.log_result("User Sees Own Pending Post", False, "No user token available")
             return False
             
-        posts_count = len(data) if data else 0
-        if posts_count == 1:
-            post = data[0]
-            if post.get('title') == "Welcome to Paperboy Prince 2026!":
-                self.log_result("Post Appears in Feed", True, "Created post visible in feed")
+        data, error = self.make_request('GET', 'posts/my', expected_status=200, token=self.user_token)
+        
+        if error:
+            self.log_result("User Sees Own Pending Post", False, error)
+            return False
+            
+        posts = data if data else []
+        for post in posts:
+            if post.get('id') == self.created_post_id and post.get('status') == 'pending':
+                self.log_result("User Sees Own Pending Post", True, "User can see their pending post")
                 return True
-            else:
-                self.log_result("Post Appears in Feed", False, f"Post title mismatch: {post.get('title')}")
-        else:
-            self.log_result("Post Appears in Feed", False, f"Expected 1 post, found {posts_count}")
+        
+        self.log_result("User Sees Own Pending Post", False, "User cannot see their pending post")
         return False
 
-    def test_admin_stats(self):
-        """Test admin stats endpoint"""
-        print("\n📊 Testing Admin Stats...")
+    def test_admin_sees_pending_post(self):
+        """Test admin can see pending posts"""
+        print("\n👮 Testing Admin Sees Pending Posts...")
         
-        if not self.token:
-            self.log_result("Admin Stats", False, "No admin token available")
+        if not self.admin_token:
+            self.log_result("Admin Sees Pending Posts", False, "No admin token available")
             return False
             
-        data, error = self.make_request('GET', 'admin/stats', expected_status=200)
+        data, error = self.make_request('GET', 'posts/pending', expected_status=200, token=self.admin_token)
         
         if error:
-            self.log_result("Admin Stats", False, error)
+            self.log_result("Admin Sees Pending Posts", False, error)
             return False
             
-        if data:
-            print(f"   📈 Stats: {data}")
-            self.log_result("Admin Stats", True, "Stats retrieved successfully")
+        posts = data if data else []
+        for post in posts:
+            if post.get('id') == self.created_post_id and post.get('status') == 'pending':
+                self.log_result("Admin Sees Pending Posts", True, "Admin can see pending post")
+                return True
+        
+        self.log_result("Admin Sees Pending Posts", False, "Admin cannot see pending post")
+        return False
+
+    def test_admin_approves_post(self):
+        """Test admin approves post"""
+        print("\n✅ Testing Admin Approves Post...")
+        
+        if not self.admin_token or not self.created_post_id:
+            self.log_result("Admin Approves Post", False, "Missing admin token or post ID")
+            return False
+            
+        moderation_data = {"action": "approve"}
+        
+        data, error = self.make_request('POST', f'posts/{self.created_post_id}/moderate', 
+                                      moderation_data, expected_status=200, token=self.admin_token)
+        
+        if error:
+            self.log_result("Admin Approves Post", False, error)
+            return False
+            
+        if data and data.get('status') == 'approved':
+            self.log_result("Admin Approves Post", True, "Post successfully approved")
             return True
         else:
-            self.log_result("Admin Stats", False, "No stats data returned")
+            self.log_result("Admin Approves Post", False, f"Expected approved status, got: {data.get('status') if data else 'no data'}")
+            return False
+
+    def test_approved_post_in_public_feed(self):
+        """Test approved post appears in public feed"""
+        print("\n📰 Testing Approved Post in Public Feed...")
+        
+        data, error = self.make_request('GET', 'posts', expected_status=200, token=None)
+        
+        if error:
+            self.log_result("Approved Post in Public Feed", False, error)
+            return False
+            
+        posts = data if data else []
+        for post in posts:
+            if post.get('id') == self.created_post_id and post.get('status') == 'approved':
+                self.log_result("Approved Post in Public Feed", True, "Approved post visible in public feed")
+                return True
+        
+        self.log_result("Approved Post in Public Feed", False, "Approved post not found in public feed")
+        return False
+
+    # ============ ACTION MODERATION TESTS ============
+
+    def test_user_creates_action_pending(self):
+        """Test user creates action with pending status"""
+        print("\n🎯 Testing User Creates Action (Pending)...")
+        
+        if not self.user_token:
+            self.log_result("User Creates Action", False, "No user token available")
+            return False
+            
+        action_data = {
+            "title": "Neighborhood Cleanup Volunteer Drive",
+            "description": "Join us for a community cleanup event to make our neighborhood cleaner and more beautiful.",
+            "action_type": "volunteer"
+        }
+        
+        data, error = self.make_request('POST', 'actions', action_data, expected_status=200, token=self.user_token)
+        
+        if error:
+            self.log_result("User Creates Action", False, error)
+            return False
+            
+        if data and 'id' in data and data.get('status') == 'pending':
+            self.created_action_id = data['id']
+            self.log_result("User Creates Action", True, f"Action created with pending status: {self.created_action_id}")
+            return True
+        else:
+            self.log_result("User Creates Action", False, f"Expected pending status, got: {data.get('status') if data else 'no data'}")
+            return False
+
+    def test_pending_action_not_in_public_feed(self):
+        """Test pending action does not appear in public feed"""
+        print("\n🚫 Testing Pending Action Not in Public Feed...")
+        
+        data, error = self.make_request('GET', 'actions', expected_status=200, token=None)
+        
+        if error:
+            self.log_result("Pending Action Not in Public Feed", False, error)
+            return False
+            
+        actions = data if data else []
+        for action in actions:
+            if action.get('id') == self.created_action_id:
+                self.log_result("Pending Action Not in Public Feed", False, "Pending action found in public feed")
+                return False
+        
+        self.log_result("Pending Action Not in Public Feed", True, "Pending action correctly hidden from public")
+        return True
+
+    def test_user_sees_own_pending_action(self):
+        """Test user can see their own pending action"""
+        print("\n👁️ Testing User Sees Own Pending Action...")
+        
+        if not self.user_token:
+            self.log_result("User Sees Own Pending Action", False, "No user token available")
+            return False
+            
+        data, error = self.make_request('GET', 'actions/my', expected_status=200, token=self.user_token)
+        
+        if error:
+            self.log_result("User Sees Own Pending Action", False, error)
+            return False
+            
+        actions = data if data else []
+        for action in actions:
+            if action.get('id') == self.created_action_id and action.get('status') == 'pending':
+                self.log_result("User Sees Own Pending Action", True, "User can see their pending action")
+                return True
+        
+        self.log_result("User Sees Own Pending Action", False, "User cannot see their pending action")
+        return False
+
+    def test_admin_sees_pending_action(self):
+        """Test admin can see pending actions"""
+        print("\n👮 Testing Admin Sees Pending Actions...")
+        
+        if not self.admin_token:
+            self.log_result("Admin Sees Pending Actions", False, "No admin token available")
+            return False
+            
+        data, error = self.make_request('GET', 'actions/pending', expected_status=200, token=self.admin_token)
+        
+        if error:
+            self.log_result("Admin Sees Pending Actions", False, error)
+            return False
+            
+        actions = data if data else []
+        for action in actions:
+            if action.get('id') == self.created_action_id and action.get('status') == 'pending':
+                self.log_result("Admin Sees Pending Actions", True, "Admin can see pending action")
+                return True
+        
+        self.log_result("Admin Sees Pending Actions", False, "Admin cannot see pending action")
+        return False
+
+    def test_admin_approves_action(self):
+        """Test admin approves action"""
+        print("\n✅ Testing Admin Approves Action...")
+        
+        if not self.admin_token or not self.created_action_id:
+            self.log_result("Admin Approves Action", False, "Missing admin token or action ID")
+            return False
+            
+        moderation_data = {"action": "approve"}
+        
+        data, error = self.make_request('POST', f'actions/{self.created_action_id}/moderate', 
+                                      moderation_data, expected_status=200, token=self.admin_token)
+        
+        if error:
+            self.log_result("Admin Approves Action", False, error)
+            return False
+            
+        if data and data.get('status') == 'approved':
+            self.log_result("Admin Approves Action", True, "Action successfully approved")
+            return True
+        else:
+            self.log_result("Admin Approves Action", False, f"Expected approved status, got: {data.get('status') if data else 'no data'}")
+            return False
+
+    def test_approved_action_in_public_feed(self):
+        """Test approved action appears in public feed"""
+        print("\n📰 Testing Approved Action in Public Feed...")
+        
+        data, error = self.make_request('GET', 'actions', expected_status=200, token=None)
+        
+        if error:
+            self.log_result("Approved Action in Public Feed", False, error)
+            return False
+            
+        actions = data if data else []
+        for action in actions:
+            if action.get('id') == self.created_action_id and action.get('status') == 'approved':
+                self.log_result("Approved Action in Public Feed", True, "Approved action visible in public feed")
+                return True
+        
+        self.log_result("Approved Action in Public Feed", False, "Approved action not found in public feed")
+        return False
+
+    # ============ REJECTION FLOW TESTS ============
+
+    def test_rejection_flow(self):
+        """Test post rejection flow"""
+        print("\n❌ Testing Post Rejection Flow...")
+        
+        if not self.user_token:
+            self.log_result("Post Rejection Flow", False, "No user token available")
+            return False
+            
+        # Create another post to reject
+        post_data = {
+            "title": "Inappropriate Content Test",
+            "content": "This post will be rejected for testing purposes."
+        }
+        
+        data, error = self.make_request('POST', 'posts', post_data, expected_status=200, token=self.user_token)
+        
+        if error:
+            self.log_result("Post Rejection Flow", False, f"Failed to create post for rejection: {error}")
+            return False
+            
+        if not data or 'id' not in data:
+            self.log_result("Post Rejection Flow", False, "No post ID in response")
+            return False
+            
+        self.rejected_post_id = data['id']
+        
+        # Now reject it as admin
+        if not self.admin_token:
+            self.log_result("Post Rejection Flow", False, "No admin token available")
+            return False
+            
+        moderation_data = {
+            "action": "reject",
+            "rejection_reason": "Does not meet guidelines"
+        }
+        
+        data, error = self.make_request('POST', f'posts/{self.rejected_post_id}/moderate', 
+                                      moderation_data, expected_status=200, token=self.admin_token)
+        
+        if error:
+            self.log_result("Post Rejection Flow", False, f"Failed to reject post: {error}")
+            return False
+            
+        if data and data.get('status') == 'rejected' and data.get('rejection_reason') == "Does not meet guidelines":
+            self.log_result("Post Rejection Flow", True, "Post successfully rejected with reason")
+            return True
+        else:
+            self.log_result("Post Rejection Flow", False, f"Expected rejected status with reason, got: {data}")
+            return False
+
+    def test_user_sees_rejected_post(self):
+        """Test user can see their rejected post with reason"""
+        print("\n👁️ Testing User Sees Rejected Post...")
+        
+        if not self.user_token or not self.rejected_post_id:
+            self.log_result("User Sees Rejected Post", False, "Missing user token or rejected post ID")
+            return False
+            
+        data, error = self.make_request('GET', 'posts/my', expected_status=200, token=self.user_token)
+        
+        if error:
+            self.log_result("User Sees Rejected Post", False, error)
+            return False
+            
+        posts = data if data else []
+        for post in posts:
+            if (post.get('id') == self.rejected_post_id and 
+                post.get('status') == 'rejected' and 
+                post.get('rejection_reason') == "Does not meet guidelines"):
+                self.log_result("User Sees Rejected Post", True, "User can see rejected post with reason")
+                return True
+        
+        self.log_result("User Sees Rejected Post", False, "User cannot see rejected post with proper status/reason")
+        return False
+
+    # ============ NOTIFICATION TESTS ============
+
+    def test_admin_notifications(self):
+        """Test admin notifications"""
+        print("\n🔔 Testing Admin Notifications...")
+        
+        if not self.admin_token:
+            self.log_result("Admin Notifications", False, "No admin token available")
+            return False
+            
+        data, error = self.make_request('GET', 'notifications', expected_status=200, token=self.admin_token)
+        
+        if error:
+            self.log_result("Admin Notifications", False, error)
+            return False
+            
+        if isinstance(data, list):
+            self.log_result("Admin Notifications", True, f"Retrieved {len(data)} notifications")
+            return True
+        else:
+            self.log_result("Admin Notifications", False, "Expected list of notifications")
+            return False
+
+    def test_unread_notification_count(self):
+        """Test unread notification count"""
+        print("\n📊 Testing Unread Notification Count...")
+        
+        if not self.admin_token:
+            self.log_result("Unread Notification Count", False, "No admin token available")
+            return False
+            
+        data, error = self.make_request('GET', 'notifications/unread-count', expected_status=200, token=self.admin_token)
+        
+        if error:
+            self.log_result("Unread Notification Count", False, error)
+            return False
+            
+        if data and 'unread_count' in data and isinstance(data['unread_count'], int):
+            self.log_result("Unread Notification Count", True, f"Unread count: {data['unread_count']}")
+            return True
+        else:
+            self.log_result("Unread Notification Count", False, "Invalid unread count response")
+            return False
+
+    # ============ HEALTH CHECK TESTS ============
+
+    def test_health_check(self):
+        """Test health check endpoint"""
+        print("\n🏥 Testing Health Check...")
+        
+        data, error = self.make_request('GET', 'health', expected_status=200, token=None)
+        
+        if error:
+            self.log_result("Health Check", False, error)
+            return False
+            
+        if (data and 
+            data.get('api') == 'ok' and 
+            data.get('database') == 'ok'):
+            self.log_result("Health Check", True, "API and database healthy")
+            return True
+        else:
+            self.log_result("Health Check", False, f"Health check failed: {data}")
+            return False
+
+    # ============ PASSWORD CHANGE TEST ============
+
+    def test_change_password(self):
+        """Test password change functionality"""
+        print("\n🔑 Testing Password Change...")
+        
+        if not self.user_token:
+            self.log_result("Password Change", False, "No user token available")
+            return False
+            
+        new_password = "NewTestPassword123!"
+        password_data = {
+            "current_password": self.test_user_password,
+            "new_password": new_password
+        }
+        
+        data, error = self.make_request('POST', 'auth/change-password', password_data, 
+                                      expected_status=200, token=self.user_token)
+        
+        if error:
+            self.log_result("Password Change", False, error)
+            return False
+            
+        if data and data.get('message') == "Password changed successfully":
+            # Test login with new password
+            login_data = {
+                'email': self.test_user_email,
+                'password': new_password
+            }
+            
+            login_response, login_error = self.make_request('POST', 'auth/login', login_data, 
+                                                          expected_status=200, token=None)
+            
+            if login_error:
+                self.log_result("Password Change", False, f"Login with new password failed: {login_error}")
+                return False
+                
+            if login_response and 'token' in login_response:
+                self.log_result("Password Change", True, "Password changed and login successful")
+                return True
+            else:
+                self.log_result("Password Change", False, "Login with new password failed")
+                return False
+        else:
+            self.log_result("Password Change", False, f"Unexpected response: {data}")
             return False
 
     def cleanup_test_data(self):
