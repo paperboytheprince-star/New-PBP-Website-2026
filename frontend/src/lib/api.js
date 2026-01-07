@@ -9,6 +9,10 @@ const isBackendAvailable = () => {
   return BACKEND_URL && BACKEND_URL !== '' && BACKEND_URL !== 'undefined';
 };
 
+// API call logging for diagnostics (empty in static mode)
+const apiCallLog = [];
+export const getApiCallLog = () => [...apiCallLog];
+
 // Default post image URL
 export const DEFAULT_POST_IMAGE = '/default-post.jpg';
 
