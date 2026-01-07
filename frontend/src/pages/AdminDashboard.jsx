@@ -1134,7 +1134,7 @@ const AdminDashboard = () => {
                         {subscribers.length} people waiting for the shop launch!
                       </p>
                       <p className="font-primary text-sm text-muted-foreground">
-                        Export the list to send email announcements when you're ready to launch.
+                        Export the list to send email announcements when you&apos;re ready to launch.
                       </p>
                     </div>
                     <Table>
