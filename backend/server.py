@@ -885,7 +885,26 @@ async def get_my_rsvps(user: dict = Depends(get_current_user)):
 
 @api_router.get("/actions", response_model=List[ActionResponse])
 async def get_actions():
-    actions = await db.actions.find({}, {"_id": 0}).to_list(100)
+    """Get all approved actions (public)"""
+    actions = await db.actions.find({"status": "approved"}, {"_id": 0}).to_list(100)
+    for action in actions:
+        count = await db.action_participants.count_documents({"action_id": action["id"]})
+        action["participant_count"] = count
+    return actions
+
+@api_router.get("/actions/pending", response_model=List[ActionResponse])
+async def get_pending_actions(user: dict = Depends(get_admin_user)):
+    """Get all pending actions for admin review"""
+    actions = await db.actions.find({"status": "pending"}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    for action in actions:
+        count = await db.action_participants.count_documents({"action_id": action["id"]})
+        action["participant_count"] = count
+    return actions
+
+@api_router.get("/actions/my", response_model=List[ActionResponse])
+async def get_my_actions(user: dict = Depends(get_current_user)):
+    """Get current user's actions (all statuses)"""
+    actions = await db.actions.find({"author_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(100)
     for action in actions:
         count = await db.action_participants.count_documents({"action_id": action["id"]})
         action["participant_count"] = count
@@ -901,9 +920,13 @@ async def get_action(action_id: str):
     return action
 
 @api_router.post("/actions", response_model=ActionResponse)
-async def create_action(action_data: ActionCreate, user: dict = Depends(get_admin_user)):
+async def create_action(action_data: ActionCreate, user: dict = Depends(get_current_user)):
+    """Create a new action (users: pending status, admins: approved)"""
     action_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
+    
+    # Admins' actions are auto-approved, regular users' actions are pending
+    action_status = "approved" if user.get("is_admin") else "pending"
     
     action_doc = {
         "id": action_id,
@@ -911,11 +934,69 @@ async def create_action(action_data: ActionCreate, user: dict = Depends(get_admi
         "description": action_data.description,
         "action_type": action_data.action_type,
         "image_url": action_data.image_url,
+        "location": action_data.location,
+        "action_url": action_data.action_url,
+        "action_date": action_data.action_date,
+        "author_id": user["id"],
+        "author_name": user["name"],
+        "status": action_status,
+        "rejection_reason": None,
+        "reviewed_by": user["id"] if user.get("is_admin") else None,
+        "reviewed_at": now if user.get("is_admin") else None,
         "created_at": now
     }
     await db.actions.insert_one(action_doc)
+    
+    # If pending, notify admins
+    if action_status == "pending":
+        await create_admin_notifications("action", action_id, action_data.title, user["name"])
+        await send_admin_notification_emails("action", action_id, action_data.title, user["name"])
+    
     action_doc["participant_count"] = 0
     return action_doc
+
+@api_router.post("/actions/{action_id}/moderate")
+async def moderate_action(action_id: str, moderation: ActionModeration, user: dict = Depends(get_admin_user)):
+    """Approve or reject an action (admin only)"""
+    action = await db.actions.find_one({"id": action_id}, {"_id": 0})
+    if not action:
+        raise HTTPException(status_code=404, detail="Action not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    if moderation.action == "approve":
+        new_status = "approved"
+    elif moderation.action == "reject":
+        new_status = "rejected"
+        if not moderation.rejection_reason:
+            raise HTTPException(status_code=400, detail="Rejection reason required")
+    else:
+        raise HTTPException(status_code=400, detail="Invalid action. Use 'approve' or 'reject'")
+    
+    update_data = {
+        "status": new_status,
+        "reviewed_by": user["id"],
+        "reviewed_at": now
+    }
+    if moderation.rejection_reason:
+        update_data["rejection_reason"] = moderation.rejection_reason
+    
+    await db.actions.update_one({"id": action_id}, {"$set": update_data})
+    
+    # Create audit log
+    await create_audit_log(
+        action=f"action_{moderation.action}",
+        admin_id=user["id"],
+        admin_email=user["email"],
+        target_user_id=action.get("author_id"),
+        details=f"Action '{action['title']}' {moderation.action}d" + (f": {moderation.rejection_reason}" if moderation.rejection_reason else ""),
+        outcome="success"
+    )
+    
+    updated = await db.actions.find_one({"id": action_id}, {"_id": 0})
+    count = await db.action_participants.count_documents({"action_id": action_id})
+    updated["participant_count"] = count
+    return updated
 
 @api_router.put("/actions/{action_id}", response_model=ActionResponse)
 async def update_action(action_id: str, action_data: ActionUpdate, user: dict = Depends(get_admin_user)):
