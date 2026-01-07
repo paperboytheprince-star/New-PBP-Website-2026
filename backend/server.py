@@ -221,6 +221,9 @@ class ActionCreate(BaseModel):
     description: str
     action_type: str  # volunteer, petition, pledge
     image_url: Optional[str] = None
+    location: Optional[str] = None
+    action_url: Optional[str] = None
+    action_date: Optional[str] = None
 
 class ActionResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -229,7 +232,16 @@ class ActionResponse(BaseModel):
     description: str
     action_type: str
     image_url: Optional[str] = None
-    participant_count: int
+    location: Optional[str] = None
+    action_url: Optional[str] = None
+    action_date: Optional[str] = None
+    author_id: Optional[str] = None
+    author_name: Optional[str] = None
+    status: str = "approved"  # pending, approved, rejected
+    rejection_reason: Optional[str] = None
+    reviewed_by: Optional[str] = None
+    reviewed_at: Optional[str] = None
+    participant_count: int = 0
     created_at: str
 
 class ActionUpdate(BaseModel):
@@ -237,6 +249,13 @@ class ActionUpdate(BaseModel):
     description: Optional[str] = None
     action_type: Optional[str] = None
     image_url: Optional[str] = None
+    location: Optional[str] = None
+    action_url: Optional[str] = None
+    action_date: Optional[str] = None
+
+class ActionModeration(BaseModel):
+    action: str  # approve, reject
+    rejection_reason: Optional[str] = None
 
 class ActionParticipantResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
