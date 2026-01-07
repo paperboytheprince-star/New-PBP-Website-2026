@@ -115,6 +115,20 @@ export const getErrorMessage = (error) => {
   return error.apiMessage || 'An error occurred';
 };
 
+// Image Upload
+export const uploadAPI = {
+  uploadImage: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/upload/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+};
+
+// Default post image URL
+export const DEFAULT_POST_IMAGE = '/default-post.jpg';
+
 // Auth
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
