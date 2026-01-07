@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { postsAPI, commentsAPI, apiWithRetry, getErrorMessage, DEFAULT_POST_IMAGE } from '../lib/api';
+import { postsAPI, commentsAPI, DEFAULT_POST_IMAGE, FEATURES } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Skeleton } from '../components/ui/skeleton';
@@ -14,41 +14,10 @@ import CommentSection from '../components/comments/CommentSection';
 // Helper to get post image URL with fallback
 const getPostImageUrl = (imageUrl) => {
   if (!imageUrl) return DEFAULT_POST_IMAGE;
-  if (imageUrl.startsWith('/api/uploads/')) {
+  if (imageUrl.startsWith('/api/uploads/') && process.env.REACT_APP_BACKEND_URL) {
     return `${process.env.REACT_APP_BACKEND_URL}${imageUrl}`;
   }
   return imageUrl;
-};
-
-// Set page metadata for social sharing
-const setPageMeta = (post) => {
-  if (!post) return;
-  document.title = `${post.title} | Paperboy Prince`;
-  
-  // Update or create meta tags
-  const updateMeta = (property, content) => {
-    let meta = document.querySelector(`meta[property="${property}"]`) ||
-               document.querySelector(`meta[name="${property}"]`);
-    if (!meta) {
-      meta = document.createElement('meta');
-      meta.setAttribute(property.startsWith('og:') || property.startsWith('twitter:') ? 'property' : 'name', property);
-      document.head.appendChild(meta);
-    }
-    meta.setAttribute('content', content);
-  };
-  
-  const description = post.content.slice(0, 160) + (post.content.length > 160 ? '...' : '');
-  const imageUrl = getPostImageUrl(post.image_url);
-  
-  updateMeta('description', description);
-  updateMeta('og:title', post.title);
-  updateMeta('og:description', description);
-  updateMeta('og:image', imageUrl);
-  updateMeta('og:type', 'article');
-  updateMeta('twitter:card', 'summary_large_image');
-  updateMeta('twitter:title', post.title);
-  updateMeta('twitter:description', description);
-  updateMeta('twitter:image', imageUrl);
 };
 
 const PostDetail = () => {
@@ -66,9 +35,8 @@ const PostDetail = () => {
 
   useEffect(() => {
     if (post) {
-      setPageMeta(post);
+      document.title = `${post.title} | Paperboy Prince`;
     }
-    // Cleanup: reset title on unmount
     return () => {
       document.title = 'Paperboy Prince';
     };
@@ -77,22 +45,29 @@ const PostDetail = () => {
   const loadPost = async () => {
     setLoading(true);
     try {
-      const [postRes, commentsRes] = await Promise.all([
-        apiWithRetry(() => postsAPI.getOne(id)),
-        apiWithRetry(() => commentsAPI.getForPost(id))
-      ]);
+      const postRes = await postsAPI.getOne(id);
+      const postData = postRes.data;
       
-      if (postRes.data.status !== 'approved') {
+      if (!postData || (postData.status && postData.status !== 'approved')) {
         toast.error('Post not found');
         navigate('/posts');
         return;
       }
       
-      setPost(postRes.data);
-      setComments(commentsRes.data || []);
+      setPost(postData);
+      
+      // Load comments only if backend is available
+      if (FEATURES.COMMENTS_ENABLED) {
+        try {
+          const commentsRes = await commentsAPI.getForPost(id);
+          setComments(commentsRes.data || []);
+        } catch {
+          setComments([]);
+        }
+      }
     } catch (err) {
-      console.error('Error loading post:', err);
-      toast.error(getErrorMessage(err));
+      console.warn('Error loading post:', err.message);
+      toast.error('Post not found');
       navigate('/posts');
     } finally {
       setLoading(false);
@@ -185,10 +160,12 @@ const PostDetail = () => {
                   day: 'numeric'
                 })}
               </span>
-              <span className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4" />
-                {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
-              </span>
+              {FEATURES.COMMENTS_ENABLED && (
+                <span className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4" />
+                  {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
+                </span>
+              )}
               
               {/* Share button */}
               <Button
@@ -209,15 +186,12 @@ const PostDetail = () => {
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeSanitize]}
               components={{
-                // Custom paragraph rendering to preserve line breaks
                 p: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
-                // Styled links
                 a: ({ href, children }) => (
                   <a href={href} target="_blank" rel="noopener noreferrer" className="text-pp-magenta hover:underline">
                     {children}
                   </a>
                 ),
-                // Code blocks
                 code: ({ inline, children }) => (
                   inline 
                     ? <code className="bg-gray-100 px-1 py-0.5 rounded text-sm">{children}</code>
@@ -230,13 +204,15 @@ const PostDetail = () => {
           </div>
         </div>
 
-        {/* Comments Section */}
-        <CommentSection
-          postId={post.id}
-          comments={comments}
-          onCommentAdded={handleCommentAdded}
-          onCommentDeleted={handleCommentDeleted}
-        />
+        {/* Comments Section - Only show if backend available */}
+        {FEATURES.COMMENTS_ENABLED && (
+          <CommentSection
+            postId={post.id}
+            comments={comments}
+            onCommentAdded={handleCommentAdded}
+            onCommentDeleted={handleCommentDeleted}
+          />
+        )}
       </article>
 
       {/* Bottom spacing */}
