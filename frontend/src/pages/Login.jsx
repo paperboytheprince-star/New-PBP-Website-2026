@@ -1,59 +1,55 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authAPI, FEATURES } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Heart, ArrowLeft, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Heart, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { signIn, resetPassword } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-
-  // Check if auth is available
-  if (!FEATURES.AUTH_ENABLED) {
-    return (
-      <div className="min-h-screen bg-muted flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 font-primary">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-          <Card className="rounded-3xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(255,153,204,1)]">
-            <CardContent className="p-8 text-center">
-              <AlertCircle className="w-16 h-16 text-pp-magenta mx-auto mb-4" />
-              <h2 className="font-campaign text-2xl mb-4">LOGIN UNAVAILABLE</h2>
-              <p className="text-muted-foreground font-primary">
-                User accounts are not available on this version of the site. 
-                Please visit our main platform to log in.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await authAPI.login(formData);
-      login(response.data.user, response.data.token);
+      await signIn(formData.email, formData.password);
       toast.success('Welcome back!');
       navigate('/');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Login failed');
+      console.error('Login error:', error);
+      toast.error(error.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!formData.email) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    setLoading(true);
+
+    try {
+      await resetPassword(formData.email);
+      toast.success('Password reset email sent! Check your inbox.');
+      setShowForgotPassword(false);
+    } catch (error) {
+      console.error('Reset error:', error);
+      toast.error(error.message || 'Failed to send reset email');
     } finally {
       setLoading(false);
     }
@@ -73,58 +69,102 @@ const Login = () => {
             <div className="w-16 h-16 bg-pp-magenta rounded-full flex items-center justify-center mx-auto mb-4">
               <Heart className="w-8 h-8 text-white fill-white" />
             </div>
-            <CardTitle className="font-campaign text-3xl tracking-wider">WELCOME BACK</CardTitle>
+            <CardTitle className="font-campaign text-3xl tracking-wider">
+              {showForgotPassword ? 'RESET PASSWORD' : 'WELCOME BACK'}
+            </CardTitle>
             <CardDescription className="font-primary">
-              Sign in to continue the revolution
+              {showForgotPassword 
+                ? 'Enter your email to receive a reset link' 
+                : 'Sign in to continue the revolution'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="font-primary font-semibold">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  required
-                  className="rounded-xl border-2 border-black px-4 py-3 input-glow"
-                  data-testid="login-email-input"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="font-primary font-semibold">Password</Label>
-                <div className="relative">
+            {showForgotPassword ? (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="font-primary font-semibold">Email</Label>
                   <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
-                    className="rounded-xl border-2 border-black px-4 py-3 pr-10 input-glow"
-                    data-testid="login-password-input"
+                    className="rounded-xl border-2 border-black px-4 py-3 input-glow"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    data-testid="toggle-password"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
                 </div>
-              </div>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full rounded-full bg-pp-magenta text-white font-bold py-6 text-lg border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
-                data-testid="login-submit-button"
-              >
-                {loading ? 'Signing in...' : 'Sign In'}
-              </Button>
-            </form>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-full bg-pp-magenta text-white font-bold py-6 text-lg border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Sending...' : 'Send Reset Link'}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="w-full text-center text-pp-magenta font-semibold hover:underline font-primary"
+                >
+                  Back to Sign In
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="font-primary font-semibold">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                    className="rounded-xl border-2 border-black px-4 py-3 input-glow"
+                    data-testid="login-email-input"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password" className="font-primary font-semibold">Password</Label>
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotPassword(true)}
+                      className="text-sm text-pp-magenta hover:underline font-primary"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      required
+                      className="rounded-xl border-2 border-black px-4 py-3 pr-10 input-glow"
+                      data-testid="login-password-input"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      data-testid="toggle-password"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-full bg-pp-magenta text-white font-bold py-6 text-lg border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
+                  data-testid="login-submit-button"
+                >
+                  {loading ? 'Signing in...' : 'Sign In'}
+                </Button>
+              </form>
+            )}
 
             <div className="mt-6 text-center">
               <p className="font-primary text-muted-foreground">
