@@ -81,10 +81,13 @@ export const isStaticMode = () => {
   return !backendUrl || backendUrl === '' || backendUrl === 'undefined';
 };
 
-// Feature flags for static mode
+// Feature flags
+// AUTH is now always enabled via Supabase (deployment-safe)
+// Other features depend on backend availability
 export const FEATURES = {
-  // These features require backend
-  AUTH_ENABLED: !isStaticMode(),
+  // Auth is always available via Supabase
+  AUTH_ENABLED: true,
+  // These features still require backend
   COMMENTS_ENABLED: !isStaticMode(),
   ADMIN_ENABLED: !isStaticMode(),
   DYNAMIC_POSTS: !isStaticMode(),
