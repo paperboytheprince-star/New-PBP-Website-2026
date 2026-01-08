@@ -1,0 +1,17 @@
+RewriteEngine On
+
+# Force HTTPS safely (no redirect loops)
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Do NOT rewrite real files or directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# SPA fallback for deep links
+RewriteRule ^ index.html [L]
+
+# Safety net for Apache 404s
+ErrorDocument 404 /index.html
