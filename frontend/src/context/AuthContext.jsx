@@ -60,18 +60,23 @@ export const AuthProvider = ({ children }) => {
 
   // Sign up with email and password
   const signUp = async (email, password, name) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name: name,
-          is_admin: false,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name,
+            is_admin: false,
+          },
         },
-      },
-    });
-    if (error) throw error;
-    return data;
+      });
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Supabase signUp error:', error);
+      throw error;
+    }
   };
 
   // Sign in with email and password
