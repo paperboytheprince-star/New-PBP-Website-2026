@@ -1,4 +1,8 @@
+// AuthContext - Uses Supabase Auth for deployment-safe authentication
+// Auth persists across all deployments via Supabase cloud
+
 import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
@@ -12,41 +16,126 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('pp_token');
-    const storedUser = localStorage.getItem('pp_user');
-    
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0],
+          is_admin: session.user.user_metadata?.is_admin || false,
+        });
+      }
+      setLoading(false);
+    });
+
+    // Listen for auth changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0],
+            is_admin: session.user.user_metadata?.is_admin || false,
+          });
+        } else {
+          setUser(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    // Cleanup subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const login = (userData, authToken) => {
-    setUser(userData);
-    setToken(authToken);
-    localStorage.setItem('pp_token', authToken);
-    localStorage.setItem('pp_user', JSON.stringify(userData));
+  // Sign up with email and password
+  const signUp = async (email, password, name) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: name,
+          is_admin: false,
+        },
+      },
+    });
+    if (error) throw error;
+    return data;
   };
 
-  const logout = () => {
+  // Sign in with email and password
+  const signIn = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  // Sign out
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     setUser(null);
-    setToken(null);
-    localStorage.removeItem('pp_token');
-    localStorage.removeItem('pp_user');
+    setSession(null);
+  };
+
+  // Reset password (sends email)
+  const resetPassword = async (email) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  // Update password (after reset)
+  const updatePassword = async (newPassword) => {
+    const { data, error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  // Legacy login function for backward compatibility
+  const login = (userData, authToken) => {
+    // This is kept for backward compatibility but Supabase handles this automatically
+    console.warn('Legacy login called - Supabase manages sessions automatically');
+  };
+
+  // Legacy logout function
+  const logout = async () => {
+    await signOut();
   };
 
   const value = {
     user,
-    token,
+    session,
     loading,
+    // Supabase auth methods
+    signUp,
+    signIn,
+    signOut,
+    resetPassword,
+    updatePassword,
+    // Legacy compatibility
     login,
     logout,
-    isAuthenticated: !!token,
+    token: session?.access_token,
+    isAuthenticated: !!session,
     isAdmin: user?.is_admin || false,
   };
 
