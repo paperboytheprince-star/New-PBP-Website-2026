@@ -22,6 +22,17 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Basic validation
+    if (!formData.name.trim()) {
+      toast.error('Please enter your name');
+      return;
+    }
+    
+    if (!formData.email.trim()) {
+      toast.error('Please enter your email');
+      return;
+    }
+    
     if (formData.password.length < 6) {
       toast.error('Password must be at least 6 characters');
       return;
@@ -30,30 +41,22 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const data = await signUp(formData.email, formData.password, formData.name);
+      const data = await signUp(formData.email.trim(), formData.password, formData.name.trim());
       
       // Check if email confirmation is required
       if (data.user && !data.session) {
         toast.success('Account created! Please check your email to confirm your account.');
         navigate('/login');
-      } else {
+      } else if (data.user && data.session) {
         toast.success('Welcome to the movement!');
         navigate('/');
+      } else {
+        toast.success('Account created! You can now log in.');
+        navigate('/login');
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      // Show specific error messages
-      let errorMessage = 'Registration failed. Please try again.';
-      if (error.message) {
-        errorMessage = error.message;
-      }
-      if (error.message?.includes('fetch')) {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      }
-      if (error.message?.includes('already registered')) {
-        errorMessage = 'This email is already registered. Please log in instead.';
-      }
-      toast.error(errorMessage);
+      // Error message is already user-friendly from AuthContext
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
