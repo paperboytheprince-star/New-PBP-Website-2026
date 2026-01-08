@@ -3,4 +3,6 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home1/svxkpxmy/public_html/
     - /bin/rm -rf $DEPLOYPATH/*
+    - /bin/rm -f $DEPLOYPATH/.htaccess
     - /bin/cp -R frontend/build/* $DEPLOYPATH
+    - /bin/cp frontend/build/.htaccess $DEPLOYPATH
