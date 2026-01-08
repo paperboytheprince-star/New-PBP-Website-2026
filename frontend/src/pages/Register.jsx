@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { authAPI, FEATURES } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Heart, ArrowLeft, Eye, EyeOff, Sparkles, AlertCircle } from 'lucide-react';
+import { Heart, ArrowLeft, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { signUp } = useAuth();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -19,30 +18,6 @@ const Register = () => {
     email: '',
     password: '',
   });
-
-  // Check if auth is available
-  if (!FEATURES.AUTH_ENABLED) {
-    return (
-      <div className="min-h-screen bg-muted flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 font-primary">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-          <Card className="rounded-3xl border-2 border-black shadow-[8px_8px_0px_0px_rgba(255,153,204,1)]">
-            <CardContent className="p-8 text-center">
-              <AlertCircle className="w-16 h-16 text-pp-magenta mx-auto mb-4" />
-              <h2 className="font-campaign text-2xl mb-4">REGISTRATION UNAVAILABLE</h2>
-              <p className="text-muted-foreground font-primary">
-                User registration is not available on this version of the site. 
-                Please visit our main platform to create an account.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,12 +30,19 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await authAPI.register(formData);
-      login(response.data.user, response.data.token);
-      toast.success('Welcome to the movement!');
-      navigate('/');
+      const data = await signUp(formData.email, formData.password, formData.name);
+      
+      // Check if email confirmation is required
+      if (data.user && !data.session) {
+        toast.success('Account created! Please check your email to confirm your account.');
+        navigate('/login');
+      } else {
+        toast.success('Welcome to the movement!');
+        navigate('/');
+      }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Registration failed');
+      console.error('Registration error:', error);
+      toast.error(error.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
