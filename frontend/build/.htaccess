@@ -1,17 +1,17 @@
-# Paperboy Prince - Bluehost Apache Configuration
-# SPA routing + HTTPS redirect (proxy-safe)
-
 RewriteEngine On
 
-# Force HTTPS without loops (works even if Bluehost/proxy sets forwarded proto)
+# Force HTTPS safely (no redirect loops)
 RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# Do not rewrite real files or directories (preserve /static and all assets)
+# Do NOT rewrite real files or directories
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# SPA fallback: send all other paths to index.html so /films etc work
+# SPA fallback for deep links
 RewriteRule ^ index.html [L]
+
+# Safety net for Apache 404s
+ErrorDocument 404 /index.html
