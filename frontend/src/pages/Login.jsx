@@ -21,15 +21,26 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.email.trim()) {
+      toast.error('Please enter your email');
+      return;
+    }
+    
+    if (!formData.password) {
+      toast.error('Please enter your password');
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      await signIn(formData.email, formData.password);
+      await signIn(formData.email.trim(), formData.password);
       toast.success('Welcome back!');
       navigate('/');
     } catch (error) {
-      console.error('Login error:', error);
-      toast.error(error.message || 'Login failed. Please check your credentials.');
+      // Error message is already user-friendly from AuthContext
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -37,19 +48,20 @@ const Login = () => {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    if (!formData.email) {
+    
+    if (!formData.email.trim()) {
       toast.error('Please enter your email address');
       return;
     }
+    
     setLoading(true);
 
     try {
-      await resetPassword(formData.email);
+      await resetPassword(formData.email.trim());
       toast.success('Password reset email sent! Check your inbox.');
       setShowForgotPassword(false);
     } catch (error) {
-      console.error('Reset error:', error);
-      toast.error(error.message || 'Failed to send reset email');
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
