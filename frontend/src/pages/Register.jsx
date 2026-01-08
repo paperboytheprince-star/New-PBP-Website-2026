@@ -42,7 +42,18 @@ const Register = () => {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error(error.message || 'Registration failed. Please try again.');
+      // Show specific error messages
+      let errorMessage = 'Registration failed. Please try again.';
+      if (error.message) {
+        errorMessage = error.message;
+      }
+      if (error.message?.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+      if (error.message?.includes('already registered')) {
+        errorMessage = 'This email is already registered. Please log in instead.';
+      }
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
