@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { postsAPI, DEFAULT_POST_IMAGE, FEATURES } from '../lib/api';
+import { trackClick } from '../lib/analytics';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Skeleton } from '../components/ui/skeleton';
 import { ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign, FileText } from 'lucide-react';
 
+// Google Form URL for volunteer signup
+const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScZbG2bCzNGf6AAaYzV9y8d9aVOJxct7El-m1MT92IlkDOy0w/viewform?usp=preview';
+
 // Helper to get post image URL with fallback
 const getPostImageUrl = (imageUrl) => {
   if (!imageUrl) return DEFAULT_POST_IMAGE;
-  // Handle relative URLs from our upload API
   if (imageUrl.startsWith('/api/uploads/') && process.env.REACT_APP_BACKEND_URL) {
     return `${process.env.REACT_APP_BACKEND_URL}${imageUrl}`;
   }
@@ -21,16 +24,21 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  // New hero images - the 5 uploaded photos
   const heroImages = [
-    'https://customer-assets.emergentagent.com/job_prince-engage/artifacts/wdi4o708_IMG_5791_Original.jpg',
-    'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1600',
+    'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/50pqt87v_DSC01894.JPEG',
+    'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/82b4ughh_DSC01891.JPEG',
+    'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/q60n7tma_DSC01881.JPEG',
+    'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/b37eq0uq_DSC01861.JPEG',
+    'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/9br0kprf_DSC01857.JPEG',
   ];
 
   useEffect(() => {
     loadData();
+    // Rotate every 5 seconds (between 4-6 as requested)
     const slideInterval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-    }, 6000);
+    }, 5000);
     return () => clearInterval(slideInterval);
   }, []);
 
@@ -47,6 +55,18 @@ const Home = () => {
     }
   };
 
+  const handleVolunteerClick = () => {
+    trackClick('volunteer_hero', '/');
+  };
+
+  const handleDonateClick = () => {
+    trackClick('donate_hero', '/');
+  };
+
+  const handleMusicClick = () => {
+    trackClick('music_hero', '/');
+  };
+
   return (
     <div className="noise-overlay">
       {/* Hero Section */}
@@ -57,12 +77,14 @@ const Home = () => {
             className={`absolute inset-0 transition-opacity duration-1000 ${
               currentSlide === idx ? 'opacity-100' : 'opacity-0'
             }`}
-            style={{ 
-              backgroundImage: `url(${img})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center top',
-            }}
-          />
+          >
+            <img
+              src={img}
+              alt={`Hero background ${idx + 1}`}
+              className="w-full h-full object-cover"
+              style={{ objectPosition: '50% 30%' }}
+            />
+          </div>
         ))}
         <div className="absolute inset-0 bg-gradient-to-br from-pp-magenta/80 via-pp-pink/70 to-pp-magenta/80" />
         
@@ -87,16 +109,24 @@ const Home = () => {
             Together we build community, create art, and make change happen. Everyone is welcome.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/action" data-testid="hero-cta-action">
+            {/* VOLUNTEER button - opens Google Form */}
+            <a 
+              href={GOOGLE_FORM_URL}
+              target="_blank" 
+              rel="noopener noreferrer"
+              onClick={handleVolunteerClick}
+              data-testid="hero-cta-volunteer"
+            >
               <Button className="rounded-full bg-white text-black font-bold px-8 py-6 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black uppercase tracking-wider">
-                Take Action
+                Volunteer
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
-            </Link>
+            </a>
             <a 
               href="https://secure.actblue.com/donate/paperboy-love-prince-2" 
               target="_blank" 
               rel="noopener noreferrer"
+              onClick={handleDonateClick}
               data-testid="hero-cta-donate"
             >
               <Button className="rounded-full bg-pp-magenta text-white font-bold px-8 py-6 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black uppercase tracking-wider">
@@ -104,7 +134,7 @@ const Home = () => {
                 Donate
               </Button>
             </a>
-            <Link to="/music" data-testid="hero-cta-music">
+            <Link to="/music" onClick={handleMusicClick} data-testid="hero-cta-music">
               <Button className="rounded-full bg-transparent text-white font-bold px-8 py-6 text-lg border-2 border-white hover:bg-white/10 transition-all uppercase tracking-wider">
                 <Music2 className="mr-2 w-5 h-5" />
                 Music
@@ -252,7 +282,7 @@ const Home = () => {
         )}
       </section>
 
-      {/* CTA Section */}
+      {/* CTA Section - Updated to use Google Form */}
       <section className="py-20 bg-pp-lavender">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="font-primary font-extrabold text-4xl md:text-5xl uppercase tracking-tight mb-6">
@@ -262,16 +292,23 @@ const Home = () => {
             Join thousands of community members taking action every day. Your voice matters.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/register" data-testid="cta-register">
+            <a 
+              href={GOOGLE_FORM_URL}
+              target="_blank" 
+              rel="noopener noreferrer"
+              onClick={() => trackClick('volunteer_cta', '/')}
+              data-testid="cta-volunteer"
+            >
               <Button className="rounded-full bg-pp-magenta text-white font-bold px-10 py-6 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black uppercase tracking-wider">
                 Join the Movement
                 <Heart className="ml-2 w-5 h-5 fill-white" />
               </Button>
-            </Link>
+            </a>
             <a 
               href="https://secure.actblue.com/donate/paperboy-love-prince-2" 
               target="_blank" 
               rel="noopener noreferrer"
+              onClick={() => trackClick('donate_cta', '/')}
             >
               <Button className="rounded-full bg-white text-pp-magenta font-bold px-10 py-6 text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black uppercase tracking-wider">
                 <DollarSign className="mr-2 w-5 h-5" />
