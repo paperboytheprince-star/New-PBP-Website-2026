@@ -24,13 +24,21 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // New hero images - the 5 uploaded photos
+  // ALL hero images - original images PLUS new uploaded photos
   const heroImages = [
+    // Original hero images (preserved)
+    'https://customer-assets.emergentagent.com/job_prince-engage/artifacts/wdi4o708_IMG_5791_Original.jpg',
+    'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1600',
+    // New photos from first upload
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/50pqt87v_DSC01894.JPEG',
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/82b4ughh_DSC01891.JPEG',
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/q60n7tma_DSC01881.JPEG',
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/b37eq0uq_DSC01861.JPEG',
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/9br0kprf_DSC01857.JPEG',
+    // New photos from second upload
+    'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/pe6nypo0_DSC01816.JPEG',
+    'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/6yibnud5_DSC01817.JPEG',
+    'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/hd5i95jx_DSC01827.JPEG',
   ];
 
   useEffect(() => {
