@@ -180,10 +180,15 @@ const Login = () => {
 
             <div className="mt-6 text-center">
               <p className="font-primary text-muted-foreground">
-                Don't have an account?{' '}
-                <Link to="/register" className="text-pp-magenta font-semibold hover:underline" data-testid="register-link">
+                Want to get involved?{' '}
+                <a 
+                  href="https://docs.google.com/forms/d/e/1FAIpQLScZbG2bCzNGf6AAaYzV9y8d9aVOJxct7El-m1MT92IlkDOy0w/viewform?usp=preview" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-pp-magenta font-semibold hover:underline"
+                >
                   Join us
-                </Link>
+                </a>
               </p>
             </div>
           </CardContent>
