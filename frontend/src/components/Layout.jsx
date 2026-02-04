@@ -17,8 +17,8 @@ import ApiDiagnostics from './ApiDiagnostics';
 // Google Form URL for volunteer signup
 const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScZbG2bCzNGf6AAaYzV9y8d9aVOJxct7El-m1MT92IlkDOy0w/viewform?usp=preview';
 
-// Socialist rose SVG - stored locally
-const ROSE_SVG_URL = '/socialist-rose.svg';
+// Correct Socialist rose SVG - from attached file
+const ROSE_SVG_URL = 'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/utxrrbqv_Red_Rose_%28Socialism%29.svg';
 
 const navLinks = [
   { path: '/', label: 'HOME', external: false },
