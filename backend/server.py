@@ -1732,6 +1732,125 @@ async def update_user_admin(user_id: str, user_data: UserUpdate, admin: dict = D
     await db.users.update_one({"id": user_id}, {"$set": update_data})
     return {"message": "User updated"}
 
+# ============ ANALYTICS ROUTES ============
+
+class AnalyticsEvent(BaseModel):
+    event_name: str
+    page_path: str
+    referrer: Optional[str] = None
+    session_id: str
+    timestamp: str
+    utm_source: Optional[str] = None
+    utm_medium: Optional[str] = None
+    utm_campaign: Optional[str] = None
+    metadata: Optional[dict] = None
+
+@api_router.post("/analytics/event")
+async def track_analytics_event(event: AnalyticsEvent):
+    """Track an analytics event (public endpoint, no auth required)"""
+    event_doc = {
+        "id": str(uuid.uuid4()),
+        "event_name": event.event_name,
+        "page_path": event.page_path,
+        "referrer": event.referrer,
+        "session_id": event.session_id,
+        "timestamp": event.timestamp,
+        "utm_source": event.utm_source,
+        "utm_medium": event.utm_medium,
+        "utm_campaign": event.utm_campaign,
+        "metadata": event.metadata or {},
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.analytics_events.insert_one(event_doc)
+    return {"status": "ok"}
+
+@api_router.get("/admin/analytics")
+async def get_analytics(
+    admin: dict = Depends(get_admin_user),
+    days: int = 30
+):
+    """Get analytics summary (admin only)"""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff_str = cutoff.isoformat()
+    
+    # Get all events in time range
+    events = await db.analytics_events.find(
+        {"timestamp": {"$gte": cutoff_str}},
+        {"_id": 0}
+    ).to_list(10000)
+    
+    # Calculate summary stats
+    pageviews = [e for e in events if e.get("event_name") == "pageview"]
+    clicks = [e for e in events if e.get("event_name") == "click"]
+    page_exits = [e for e in events if e.get("event_name") == "page_exit"]
+    
+    # Unique sessions
+    unique_sessions = len(set(e.get("session_id") for e in events if e.get("session_id")))
+    
+    # Top pages
+    page_counts = {}
+    for e in pageviews:
+        path = e.get("page_path", "/")
+        page_counts[path] = page_counts.get(path, 0) + 1
+    top_pages = sorted(page_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+    
+    # Top clicks
+    click_counts = {}
+    for e in clicks:
+        button_id = e.get("metadata", {}).get("button_id", "unknown")
+        click_counts[button_id] = click_counts.get(button_id, 0) + 1
+    top_clicks = sorted(click_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+    
+    # Top referrers
+    referrer_counts = {}
+    for e in pageviews:
+        ref = e.get("referrer") or "(direct)"
+        # Simplify referrer
+        if ref != "(direct)":
+            try:
+                from urllib.parse import urlparse
+                parsed = urlparse(ref)
+                ref = parsed.netloc or ref
+            except:
+                pass
+        referrer_counts[ref] = referrer_counts.get(ref, 0) + 1
+    top_referrers = sorted(referrer_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+    
+    # Top UTM sources
+    utm_counts = {}
+    for e in pageviews:
+        source = e.get("utm_source")
+        if source:
+            utm_counts[source] = utm_counts.get(source, 0) + 1
+    top_utm_sources = sorted(utm_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+    
+    # Average time on page (from page_exit events)
+    durations = [e.get("metadata", {}).get("duration_seconds", 0) for e in page_exits]
+    avg_duration = sum(durations) / len(durations) if durations else 0
+    
+    # Daily pageview counts for chart
+    daily_views = {}
+    for e in pageviews:
+        try:
+            date = e.get("timestamp", "")[:10]
+            daily_views[date] = daily_views.get(date, 0) + 1
+        except:
+            pass
+    daily_views_sorted = sorted(daily_views.items())
+    
+    return {
+        "period_days": days,
+        "total_pageviews": len(pageviews),
+        "total_clicks": len(clicks),
+        "unique_sessions": unique_sessions,
+        "avg_time_on_page_seconds": round(avg_duration, 1),
+        "top_pages": [{"path": p, "count": c} for p, c in top_pages],
+        "top_clicks": [{"button_id": b, "count": c} for b, c in top_clicks],
+        "top_referrers": [{"referrer": r, "count": c} for r, c in top_referrers],
+        "top_utm_sources": [{"source": s, "count": c} for s, c in top_utm_sources],
+        "daily_pageviews": [{"date": d, "count": c} for d, c in daily_views_sorted],
+    }
+
 # ============ SEED DATA ============
 
 @api_router.post("/seed")
