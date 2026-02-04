@@ -1853,29 +1853,86 @@ async def get_analytics(
 
 # ============ SEED DATA ============
 
+class AdminCredentialUpdate(BaseModel):
+    new_email: Optional[str] = None
+    new_password: Optional[str] = None
+
 @api_router.post("/seed")
 async def seed_data():
-    """Seed initial admin user only - no demo posts/events for production"""
-    # Check if admin already exists
-    existing_admin = await db.users.find_one({"email": "admin@paperboyprince.com"})
+    """Seed initial admin user - ONLY works when ENABLE_SEED=true in env vars"""
+    # Check if seeding is enabled
+    enable_seed = os.environ.get("ENABLE_SEED", "false").lower() == "true"
+    if not enable_seed:
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    # Get admin credentials from env vars (required)
+    admin_email = os.environ.get("ADMIN_SEED_EMAIL")
+    admin_password = os.environ.get("ADMIN_SEED_PASSWORD")
+    
+    if not admin_email or not admin_password:
+        raise HTTPException(
+            status_code=500, 
+            detail="ADMIN_SEED_EMAIL and ADMIN_SEED_PASSWORD must be set in environment"
+        )
+    
+    # Check if admin already exists - NEVER overwrite existing admin
+    existing_admin = await db.users.find_one({"email": admin_email})
     if existing_admin:
-        return {"message": "Admin already exists"}
+        return {"message": "Admin already exists", "admin_email": admin_email}
+    
+    # Also check if any admin exists at all
+    any_admin = await db.users.find_one({"is_admin": True})
+    if any_admin:
+        return {"message": "An admin already exists in the system", "existing_admin_email": any_admin.get("email", "unknown")}
     
     now = datetime.now(timezone.utc).isoformat()
     
-    # Create admin user only
+    # Create admin user
     admin_id = str(uuid.uuid4())
     admin_doc = {
         "id": admin_id,
-        "email": "admin@paperboyprince.com",
+        "email": admin_email,
         "name": "Paperboy Prince",
-        "password_hash": hash_password("admin123"),
+        "password_hash": hash_password(admin_password),
         "is_admin": True,
         "created_at": now
     }
     await db.users.insert_one(admin_doc)
     
-    return {"message": "Admin user created", "admin_email": "admin@paperboyprince.com"}
+    # Log without exposing credentials
+    logger.info(f"Admin user created with email: {admin_email}")
+    
+    return {"message": "Admin user created", "admin_email": admin_email}
+
+@api_router.post("/admin/update-credentials")
+async def update_admin_credentials(
+    cred_update: AdminCredentialUpdate, 
+    admin: dict = Depends(get_admin_user)
+):
+    """Update admin email and/or password - requires admin auth"""
+    update_data = {}
+    
+    if cred_update.new_email:
+        # Check if email is already taken by another user
+        existing = await db.users.find_one({"email": cred_update.new_email, "id": {"$ne": admin["id"]}})
+        if existing:
+            raise HTTPException(status_code=400, detail="Email already in use")
+        update_data["email"] = cred_update.new_email
+    
+    if cred_update.new_password:
+        if len(cred_update.new_password) < 6:
+            raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+        update_data["password_hash"] = hash_password(cred_update.new_password)
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No updates provided")
+    
+    await db.users.update_one({"id": admin["id"]}, {"$set": update_data})
+    
+    # Log without exposing credentials
+    logger.info(f"Admin credentials updated for user ID: {admin['id']}")
+    
+    return {"message": "Credentials updated successfully"}
 
 # Include router and middleware
 app.include_router(api_router)
