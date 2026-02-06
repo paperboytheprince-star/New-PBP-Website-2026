@@ -58,13 +58,7 @@ const Layout = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3" data-testid="logo-link">
-            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-pp-magenta">
-              <img 
-                src="https://customer-assets.emergentagent.com/job_prince-engage/artifacts/hk4rzvx8_PaperboyPrince_PrimaryLogo-06.png"
-                alt="Paperboy Prince Logo"
-                className="w-8 h-8 object-contain"
-              />
-            </div>
+            <RotatingLogo />
             <span className="font-campaign text-xl tracking-wider hidden sm:block">PAPERBOY PRINCE</span>
           </Link>
 
