@@ -13,6 +13,7 @@ import {
 } from './ui/dropdown-menu';
 import { Menu, User, LogOut, Settings, BarChart3 } from 'lucide-react';
 import ApiDiagnostics from './ApiDiagnostics';
+import RotatingLogo from './RotatingLogo';
 
 // Google Form URL for volunteer signup
 const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScZbG2bCzNGf6AAaYzV9y8d9aVOJxct7El-m1MT92IlkDOy0w/viewform?usp=preview';
