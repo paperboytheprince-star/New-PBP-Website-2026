@@ -1,18 +1,16 @@
 import { useState, useEffect } from 'react';
 
-// Fist logo URL (uploaded asset)
-const FIST_LOGO_URL = 'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/0zxb528i_3365B29C-5E02-4828-9D32-4AE42AE27C80.png';
-
-// Original Paperboy logo URL
+// Original Paperboy logo URL (same as used in navigation)
 const PAPERBOY_LOGO_URL = 'https://customer-assets.emergentagent.com/job_prince-engage/artifacts/hk4rzvx8_PaperboyPrince_PrimaryLogo-06.png';
 
 /**
- * RotatingLogo - Periodically flips between two logos with a 3D animation
- * Shows the original logo for 12 seconds, then flips to fist logo for 1.8 seconds
+ * RotatingLogo - Periodically animates the main site logo
+ * Now only uses the main Paperboy logo with a subtle pulse/glow animation
+ * Toggles between normal and glowing states every 3 seconds
  * Supports prefers-reduced-motion (disables animation)
  */
 const RotatingLogo = () => {
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [isGlowing, setIsGlowing] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -28,101 +26,36 @@ const RotatingLogo = () => {
   useEffect(() => {
     if (prefersReducedMotion) return;
 
-    // Timer logic: show original for 12s, flip for 1.8s
-    const SHOW_ORIGINAL_MS = 12000;
-    const SHOW_FIST_MS = 1800;
+    // Toggle glow state every 3 seconds
+    const interval = setInterval(() => {
+      setIsGlowing((prev) => !prev);
+    }, 3000);
 
-    let timeout;
-
-    const startCycle = () => {
-      // Show original logo
-      setIsFlipped(false);
-      timeout = setTimeout(() => {
-        // Flip to fist logo
-        setIsFlipped(true);
-        timeout = setTimeout(() => {
-          // Start cycle again
-          startCycle();
-        }, SHOW_FIST_MS);
-      }, SHOW_ORIGINAL_MS);
-    };
-
-    startCycle();
-
-    return () => clearTimeout(timeout);
+    return () => clearInterval(interval);
   }, [prefersReducedMotion]);
-
-  // If reduced motion is preferred, just show original logo
-  if (prefersReducedMotion) {
-    return (
-      <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-pp-magenta">
-        <img 
-          src={PAPERBOY_LOGO_URL}
-          alt="Paperboy Prince Logo"
-          className="w-8 h-8 object-contain"
-        />
-      </div>
-    );
-  }
 
   return (
     <div 
-      className="w-10 h-10 rounded-full overflow-hidden bg-pp-magenta"
+      className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-pp-magenta"
       style={{ 
-        perspective: '600px',
-        position: 'relative',
+        transition: 'box-shadow 500ms ease-in-out, transform 500ms ease-in-out',
+        boxShadow: isGlowing && !prefersReducedMotion
+          ? '0 0 20px 4px rgba(255, 153, 204, 0.8), 0 0 40px 8px rgba(255, 153, 204, 0.4)'
+          : '0 0 0 0 transparent',
+        transform: isGlowing && !prefersReducedMotion ? 'scale(1.05)' : 'scale(1)',
       }}
     >
-      {/* Inner container that flips */}
-      <div
+      <img 
+        src={PAPERBOY_LOGO_URL}
+        alt="Paperboy Prince Logo"
+        className="w-8 h-8 object-contain"
         style={{
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          transformStyle: 'preserve-3d',
-          transition: 'transform 650ms ease-in-out',
-          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+          transition: 'filter 500ms ease-in-out',
+          filter: isGlowing && !prefersReducedMotion
+            ? 'brightness(1.2) drop-shadow(0 0 4px rgba(255,255,255,0.6))'
+            : 'brightness(1)',
         }}
-      >
-        {/* Front - Original Paperboy Logo */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-          }}
-        >
-          <img 
-            src={PAPERBOY_LOGO_URL}
-            alt="Paperboy Prince Logo"
-            className="w-8 h-8 object-contain"
-          />
-        </div>
-
-        {/* Back - Fist Logo */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)',
-          }}
-        >
-          <img 
-            src={FIST_LOGO_URL}
-            alt="Solidarity Fist"
-            className="w-8 h-8 object-contain"
-          />
-        </div>
-      </div>
+      />
     </div>
   );
 };
