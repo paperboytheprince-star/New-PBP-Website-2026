@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import uuid
 
 class ModerationWorkflowTester:
-    def __init__(self, base_url="https://content-hub-661.preview.emergentagent.com"):
+    def __init__(self, base_url="https://prince-content-hub.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_base = f"{base_url}/api"
         self.admin_token = None
