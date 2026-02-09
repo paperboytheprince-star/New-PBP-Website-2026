@@ -22,10 +22,15 @@ Build and enhance the "Paperboy Prince Platform" - a community engagement platfo
 1. **Hero Section**
    - Auto-rotating image slideshow (10 images, 5-second intervals)
    - First image: DSC01894.JPEG, rest randomized
-   - View Counter Badge (top-right, starts at 129,602)
 
-2. **Navbar**
-   - Pulsing logo animation (glow effect every 3 seconds)
+2. **Views Badge** (lower-left corner)
+   - Thinner/smaller design with rose icon
+   - Label: "Views" + comma-formatted count
+   - Fixed position, scrolls with viewport
+   - Counter starts at 129,602, increments on load and randomly
+
+3. **Navbar**
+   - Spinning logo animation (360° rotation every 2 seconds)
    - Navigation links: Home, About, Films, Music, Events, Action, Shop
    - "Join Us" button links to Google Form
 
