@@ -90,47 +90,43 @@ const ViewCounterBadge = () => {
 
   return (
     <>
-      {/* Desktop: Top-right position */}
-      <div className="hidden md:flex fixed top-24 right-6 z-40">
-        <div className="bg-black/60 backdrop-blur-md rounded-2xl border border-white/20 px-4 py-3 shadow-lg flex items-center gap-3">
-          {/* Flower image */}
+      {/* Desktop: Lower-left position, thinner/smaller */}
+      <div className="hidden md:flex fixed bottom-6 left-6 z-40">
+        <div className="bg-black/60 backdrop-blur-md rounded-xl border border-white/20 px-3 py-1.5 shadow-lg flex items-center gap-2">
+          {/* Flower image (smaller) */}
           <img 
             src={FLOWER_URL}
             alt=""
-            className="w-8 h-8 object-contain flex-shrink-0"
+            className="w-5 h-5 object-contain flex-shrink-0"
             style={{ filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))' }}
           />
-          {/* Text content */}
-          <div className="flex flex-col">
-            <span className="text-white/70 text-xs font-primary uppercase tracking-wider">
-              View Counter
-            </span>
-            <span className="text-white font-bold text-xl font-primary tabular-nums">
-              {formatNumber(count)}
-            </span>
-          </div>
+          {/* Text content - single line */}
+          <span className="text-white/70 text-xs font-primary uppercase tracking-wider">
+            Views
+          </span>
+          <span className="text-white font-bold text-sm font-primary tabular-nums">
+            {formatNumber(count)}
+          </span>
         </div>
       </div>
 
-      {/* Mobile: Bottom-right position, smaller */}
-      <div className="md:hidden fixed bottom-20 right-4 z-40">
-        <div className="bg-black/60 backdrop-blur-md rounded-xl border border-white/20 px-3 py-2 shadow-lg flex items-center gap-2">
+      {/* Mobile: Lower-left position, smaller */}
+      <div className="md:hidden fixed bottom-20 left-4 z-40">
+        <div className="bg-black/60 backdrop-blur-md rounded-lg border border-white/20 px-2 py-1 shadow-lg flex items-center gap-1.5">
           {/* Flower image (smaller on mobile) */}
           <img 
             src={FLOWER_URL}
             alt=""
-            className="w-6 h-6 object-contain flex-shrink-0"
+            className="w-4 h-4 object-contain flex-shrink-0"
             style={{ filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.3))' }}
           />
-          {/* Text content */}
-          <div className="flex flex-col">
-            <span className="text-white/70 text-[10px] font-primary uppercase tracking-wider">
-              Views
-            </span>
-            <span className="text-white font-bold text-sm font-primary tabular-nums">
-              {formatNumber(count)}
-            </span>
-          </div>
+          {/* Text content - single line */}
+          <span className="text-white/70 text-[10px] font-primary uppercase tracking-wider">
+            Views
+          </span>
+          <span className="text-white font-bold text-xs font-primary tabular-nums">
+            {formatNumber(count)}
+          </span>
         </div>
       </div>
     </>
