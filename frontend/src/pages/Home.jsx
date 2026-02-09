@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { postsAPI, DEFAULT_POST_IMAGE, FEATURES } from '../lib/api';
 import { trackClick } from '../lib/analytics';
 import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Skeleton } from '../components/ui/skeleton';
+import ViewCounterBadge from '../components/ViewCounterBadge';
 import { ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign, FileText } from 'lucide-react';
 
 // Google Form URL for volunteer signup
@@ -19,27 +20,50 @@ const getPostImageUrl = (imageUrl) => {
   return imageUrl;
 };
 
+// Shuffle array (Fisher-Yates)
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 const Home = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  // ALL hero images - original images PLUS new uploaded photos
-  const heroImages = [
-    // Original hero images (preserved)
+  // ALL hero images - in original order for reference
+  const allHeroImages = [
+    // Index 0: Original hero image 1
     'https://customer-assets.emergentagent.com/job_prince-engage/artifacts/wdi4o708_IMG_5791_Original.jpg',
+    // Index 1: Original hero image 2
     'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1600',
-    // New photos from first upload
+    // Index 2: Third image (DSC01894) - THIS SHOULD BE FIRST
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/50pqt87v_DSC01894.JPEG',
+    // Index 3+: Rest of the images
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/82b4ughh_DSC01891.JPEG',
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/q60n7tma_DSC01881.JPEG',
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/b37eq0uq_DSC01861.JPEG',
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/9br0kprf_DSC01857.JPEG',
-    // New photos from second upload
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/pe6nypo0_DSC01816.JPEG',
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/6yibnud5_DSC01817.JPEG',
     'https://customer-assets.emergentagent.com/job_content-hub-661/artifacts/hd5i95jx_DSC01827.JPEG',
   ];
+
+  // Reordered hero images: third image first, then randomize the rest
+  const heroImages = useMemo(() => {
+    // Third image (index 2) goes first
+    const firstImage = allHeroImages[2];
+    // Get all other images (excluding the third)
+    const otherImages = [...allHeroImages.slice(0, 2), ...allHeroImages.slice(3)];
+    // Shuffle the other images
+    const shuffledOthers = shuffleArray(otherImages);
+    // Return with first image at start
+    return [firstImage, ...shuffledOthers];
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -48,7 +72,7 @@ const Home = () => {
       setCurrentSlide((prev) => (prev + 1) % heroImages.length);
     }, 5000);
     return () => clearInterval(slideInterval);
-  }, []);
+  }, [heroImages.length]);
 
   const loadData = async () => {
     setLoading(true);
@@ -77,6 +101,9 @@ const Home = () => {
 
   return (
     <div className="noise-overlay">
+      {/* View Counter Badge - overlaid on hero */}
+      <ViewCounterBadge />
+
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
         {heroImages.map((img, idx) => (
