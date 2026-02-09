@@ -1,98 +1,100 @@
-# Paperboy Prince Platform - PRD
+# Paperboy Prince Platform - Product Requirements Document
 
 ## Original Problem Statement
-Build a responsive web application called "Paperboy Prince Platform" - a culture-first political and creative platform for Paperboy Love Prince, combining art, campaign engagement, events, and community action.
+Build and enhance the "Paperboy Prince Platform" - a community engagement platform for the Paperboy Prince 2026 campaign featuring posts, events, and volunteer engagement.
 
 ## User Personas
-1. **Community Members** - Young, digitally-native audience interested in political activism, art, and community events
-2. **Volunteers** - People who want to take action through volunteering, signing petitions, and making pledges
-3. **Fans** - People interested in Paperboy Prince's music, films, and art
-4. **Admin (Paperboy Prince Team)** - Content managers who create posts, manage events, products, and actions
+- **Public Visitors**: Browse content, learn about the campaign, volunteer via Google Form
+- **Admin Users**: Manage posts, view analytics, update credentials
 
-## Tech Stack
-- Frontend: React + Tailwind CSS + Shadcn/UI
-- Backend: FastAPI (Python)
-- Database: MongoDB
-- Authentication: JWT-based custom auth (unified login for all users)
+## Core Requirements (Completed)
 
-## What's Been Implemented (January 2025)
+### Static Site Architecture
+- React frontend functions independently for public users
+- Backend features fail gracefully or are hidden when unavailable
+- Structured for Bluehost deployment via cPanel Git deployment
 
-### Phase 1 - MVP
-- [x] Complete backend API with all CRUD endpoints
-- [x] JWT authentication (unified login - admins use same flow as users)
-- [x] Role-based access control (admin tools hidden from non-admin users)
-- [x] Posts system with author tracking
-- [x] Products system (Coming Soon state)
-- [x] Events with RSVP tracking
-- [x] Actions with participant tracking (volunteer/petition/pledge)
-- [x] Cart system ready for Stripe integration
-- [x] Admin dashboard with stats and CRUD for all entities
+### Authentication
+- **Public Auth**: REMOVED - All CTAs link to external Google Form
+- **Admin Auth**: Email/password via backend, credentials from ENV vars
 
-### Phase 2 - Content Pages & Notifications
-- [x] "Notify Me" email collection system for shop launch
-- [x] Admin dashboard: Subscribers tab with export CSV
-- [x] About, Films, Music pages with real content
+### Features Implemented
+1. **Hero Section**
+   - Auto-rotating image slideshow (10 images, 5-second intervals)
+   - First image: DSC01894.JPEG, rest randomized
+   - View Counter Badge (top-right, starts at 129,602)
 
-### Phase 3 - Campaign Updates (Latest)
-- [x] Homepage hero: "Paperboy Prince 2026" with new hero image + slideshow
-- [x] Pink-toned visual filter on hero
-- [x] Hero buttons: Take Action, Donate (ActBlue), Music
-- [x] God's Twin album added to Music page with Spotify embed
-- [x] About page: "Congress and New York State Assembly District 54"
-- [x] Removed separate admin login - unified authentication flow
+2. **Navbar**
+   - Pulsing logo animation (glow effect every 3 seconds)
+   - Navigation links: Home, About, Films, Music, Events, Action, Shop
+   - "Join Us" button links to Google Form
 
-## Current Campaign
-**Running for:** Congress and New York State Assembly District 54 (2026)
+3. **Analytics System**
+   - Lightweight anonymous tracking (page views, clicks)
+   - Admin-only dashboard at `/admin/analytics`
 
-**Donation Link:** https://secure.actblue.com/donate/paperboy-love-prince-2
+4. **Footer**
+   - Socialist rose SVG icon
+   - Social links, copyright
 
-## Content Details
+## Architecture
 
-### Films (YouTube Embeds)
-1. Paperboy Prince for Mayor 2025 Campaign Ad (2025)
-2. Paperboy Prince is Love (2024)
-3. Baddies For Paperboy Prince (2024)
-4. I just Beat Joe Biden (2024)
-5. Paperboy Love Prince Runs For Mayor (2022)
+```
+/app/
+├── .cpanel.yml             # Bluehost deployment config
+├── public_html/            # Production build output
+├── backend/
+│   ├── server.py           # FastAPI (admin, posts, analytics)
+│   └── .env                # Backend environment variables
+└── frontend/
+    └── src/
+        ├── components/
+        │   ├── Layout.jsx
+        │   ├── RotatingLogo.jsx
+        │   └── ViewCounterBadge.jsx
+        ├── pages/
+        │   ├── Home.jsx
+        │   ├── AdminAnalytics.jsx
+        │   └── Login.jsx
+        └── lib/
+            ├── api.js
+            └── analytics.js
+```
 
-### Music (Spotify Embeds) - All 6 albums now have embeds
-1. Themsterhood of the Traveling Drip (2025)
-2. God's Twin (2023) ✓ Now has Spotify link
-3. Shrek's Family Reunion (2022)
-4. Lil Dennis Rodman (2018)
-5. Middle School Food Fight (2017)
-6. Holiday Love (2016)
+## Key API Endpoints
+- `/api/seed` - Create initial admin (when ENABLE_SEED=true)
+- `/api/login` - Admin authentication
+- `/api/admin/update-credentials` - Change admin password
+- `/api/analytics/track` - Store analytics events
+- `/api/admin/analytics` - Fetch analytics data
 
-## Admin Emails
-- admin@paperboyprince.com
-- paperboytheprince@gmail.com
+## Database Schema (MongoDB)
+- `users`: {email, password_hash, role, name}
+- `posts`: {id, title, content, status, image_url}
+- `analytics_events`: {id, timestamp, event_name, page_path, etc.}
 
-## Authentication Flow
-- All users (including admins) login via /login
-- /admin redirects to /login
-- Admin access determined by role after login
-- Admin dashboard only accessible to users with is_admin: true
+## Admin Credentials
+- Email: Set via `ADMIN_SEED_EMAIL` env var
+- Password: Set via `ADMIN_SEED_PASSWORD` env var
 
-## Branding
-- Primary Color: #FF1493 (Deep Pink/Magenta)
-- Secondary: #FF99CC (Bubbly Pink)
-- Fonts: Poppins (primary), Fredoka One (accent), Bebas Neue (campaign)
+## External Integrations
+- Google Forms: Volunteer signups
+- YouTube/Spotify: Content embeds
+- ActBlue: Donation processing
 
-## Prioritized Backlog
+---
 
-### P0 (Critical - Next)
-- Stripe payment integration for shop
+## Backlog (P2)
 
-### P1 (High)
-- Email verification for new users
-- Password reset functionality
-- Image upload for posts/products/events
-- Send email notifications when shop launches
+### Code Cleanup
+- Remove unused Supabase auth code
+- Refactor backend/server.py into modules
 
-### P2 (Medium)
-- Social sharing for posts and events
-- Comments on posts
-- Event calendar view
+### Potential Enhancements
+- Social sharing buttons for posts
+- Email newsletter signup
+- Event calendar integration
 
-## Demo Credentials
-- Admin: admin@paperboyprince.com / admin123
+---
+
+*Last Updated: February 9, 2026*
