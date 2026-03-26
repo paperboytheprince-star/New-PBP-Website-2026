@@ -7,6 +7,7 @@ import Layout from "./components/Layout";
 import Home from "./pages/Home";
 import Events from "./pages/Events";
 import ActionCenter from "./pages/ActionCenter";
+import Policies from "./pages/Policies";
 import About from "./pages/About";
 import Films from "./pages/Films";
 import Music from "./pages/Music";
@@ -46,7 +47,8 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="events" element={<Events />} />
-            <Route path="action" element={<ActionCenter />} />
+            <Route path="action" element={<Navigate to="/policies" replace />} />
+            <Route path="policies" element={<Policies />} />
             <Route path="about" element={<About />} />
             <Route path="films" element={<Films />} />
             <Route path="music" element={<Music />} />

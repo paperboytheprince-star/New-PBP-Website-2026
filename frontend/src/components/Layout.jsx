@@ -14,6 +14,7 @@ import {
 import { Menu, User, LogOut, Settings, BarChart3 } from 'lucide-react';
 import ApiDiagnostics from './ApiDiagnostics';
 import RotatingLogo from './RotatingLogo';
+import SocialLinks from './SocialLinks';
 
 // Google Form URL for volunteer signup
 const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScZbG2bCzNGf6AAaYzV9y8d9aVOJxct7El-m1MT92IlkDOy0w/viewform?usp=preview';
@@ -26,8 +27,7 @@ const navLinks = [
   { path: '/about', label: 'ABOUT', external: false },
   { path: '/films', label: 'FILMS', external: false },
   { path: '/music', label: 'MUSIC', external: false },
-  { path: '/events', label: 'EVENTS', external: false },
-  { path: '/action', label: 'ACTION', external: false },
+  { path: '/policies', label: 'POLICIES', external: false },
   { path: 'https://paperboyprince.shop', label: 'SHOP', external: true },
 ];
 
@@ -199,6 +199,9 @@ const Layout = () => {
           </div>
         </div>
       </nav>
+
+      {/* Social Links */}
+      <SocialLinks />
 
       {/* Main Content */}
       <main>

@@ -6,10 +6,73 @@ import { Button } from '../components/ui/button';
 import { Card, CardContent } from '../components/ui/card';
 import { Skeleton } from '../components/ui/skeleton';
 import ViewCounterBadge from '../components/ViewCounterBadge';
-import { ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign, FileText } from 'lucide-react';
+import { 
+  ArrowRight, Heart, Users, Calendar, Megaphone, Play, Music2, DollarSign, FileText,
+  Home as HomeIcon, Briefcase, Sparkles, GraduationCap, TreePine, Globe
+} from 'lucide-react';
 
 // Google Form URL for volunteer signup
 const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScZbG2bCzNGf6AAaYzV9y8d9aVOJxct7El-m1MT92IlkDOy0w/viewform?usp=preview';
+
+// Standout policies for homepage
+const standoutPolicies = [
+  { 
+    id: 'housing', 
+    label: 'Housing for All', 
+    icon: HomeIcon, 
+    color: 'bg-blue-500',
+    description: 'Everyone deserves a safe, affordable home, with strong tenant protections, public housing, and action against speculation.'
+  },
+  { 
+    id: 'healthcare', 
+    label: 'Healthcare for All', 
+    icon: Heart, 
+    color: 'bg-red-500',
+    description: 'Healthcare should be universal, public, affordable, and built around prevention, dignity, and access.'
+  },
+  { 
+    id: 'jobs', 
+    label: 'Jobs Guarantee', 
+    icon: Briefcase, 
+    color: 'bg-green-500',
+    description: 'Anyone who wants to work should be able to get a meaningful job at fair pay, with training and public investment.'
+  },
+  { 
+    id: 'ubi', 
+    label: 'Universal Basic Income', 
+    icon: DollarSign, 
+    color: 'bg-yellow-500',
+    description: 'No one should be left below the floor. Economic security should be a right, not a privilege.'
+  },
+  { 
+    id: 'love', 
+    label: 'Spread Love', 
+    icon: Sparkles, 
+    color: 'bg-pp-magenta',
+    description: 'Public policy should be rooted in care, creativity, community, safety, and mutual respect.'
+  },
+  { 
+    id: 'schools', 
+    label: 'Futuristic Schools', 
+    icon: GraduationCap, 
+    color: 'bg-purple-500',
+    description: 'Schools should prepare people for the future with creativity, technology, literacy, ecological thinking, and real support.'
+  },
+  { 
+    id: 'green', 
+    label: 'Greener New York', 
+    icon: TreePine, 
+    color: 'bg-teal-500',
+    description: 'Invest in parks, trees, climate resilience, cleaner streets, healthier neighborhoods, and more public green space across the city.'
+  },
+  { 
+    id: 'peace', 
+    label: 'End All Wars', 
+    icon: Globe, 
+    color: 'bg-orange-500',
+    description: 'Invest in peace, diplomacy, care, and human needs, not endless violence and destruction.'
+  },
+];
 
 // Helper to get post image URL with fallback
 const getPostImageUrl = (imageUrl) => {
@@ -209,6 +272,77 @@ const Home = () => {
                 <p className="font-primary text-sm text-muted-foreground">{stat.label}</p>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Video Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="font-campaign text-3xl md:text-4xl tracking-wider text-pp-magenta mb-2" data-testid="featured-video-title">
+            FEATURED VIDEO
+          </h2>
+          <p className="font-primary text-muted-foreground">
+            Watch "Baddies for Paperboy Prince"
+          </p>
+        </div>
+        <Card className="bg-white rounded-3xl border-2 border-black overflow-hidden card-shadow">
+          <div className="relative aspect-video bg-black">
+            <iframe
+              src="https://www.youtube.com/embed/h8LNbkXBXO8"
+              title="Baddies For Paperboy Prince"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full"
+            />
+          </div>
+        </Card>
+      </section>
+
+      {/* Standout Policies Section */}
+      <section className="py-16 bg-muted">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="font-campaign text-3xl md:text-4xl tracking-wider text-pp-magenta mb-2" data-testid="standout-policies-title">
+              STANDOUT POLICIES
+            </h2>
+            <p className="font-primary text-muted-foreground max-w-2xl mx-auto">
+              A future rooted in housing, care, dignity, culture, education, green space, and peace.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {standoutPolicies.map((policy) => (
+              <Link 
+                key={policy.id} 
+                to={`/policies#${policy.id}`}
+                className="group"
+                data-testid={`policy-card-${policy.id}`}
+              >
+                <Card className="bg-white rounded-2xl border-2 border-black overflow-hidden shadow-[4px_4px_0px_0px_rgba(255,153,204,1)] hover:shadow-[6px_6px_0px_0px_rgba(255,20,147,1)] hover:-translate-y-1 transition-all h-full">
+                  <CardContent className="p-4">
+                    <div className={`w-10 h-10 rounded-full ${policy.color} flex items-center justify-center mb-3`}>
+                      <policy.icon className="w-5 h-5 text-white" />
+                    </div>
+                    <h3 className="font-primary font-bold text-lg mb-2 group-hover:text-pp-magenta transition-colors">
+                      {policy.label}
+                    </h3>
+                    <p className="font-primary text-sm text-muted-foreground line-clamp-3">
+                      {policy.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+          
+          <div className="text-center mt-8">
+            <Link to="/policies">
+              <Button className="rounded-full bg-pp-magenta text-white font-bold px-8 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:shadow-none transition-all border-2 border-black">
+                View Full Platform
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </section>
