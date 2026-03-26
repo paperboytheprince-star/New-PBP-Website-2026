@@ -5,6 +5,20 @@ RewriteCond %{HTTPS} !=on
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
+# Security Headers (helps prevent browser warnings)
+<IfModule mod_headers.c>
+    # Force HTTPS for browsers that support it
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" env=HTTPS
+    # Prevent clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    # Prevent MIME type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    # Enable XSS filter
+    Header always set X-XSS-Protection "1; mode=block"
+    # Referrer policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
 # Do NOT rewrite real files or directories
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
